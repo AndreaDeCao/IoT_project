@@ -1,6 +1,6 @@
 //#include <Arduino.h>
 //#include <IRremote.h>
-#include <IRremote.h>
+#include <libraries/IRremote.h>
 
 // --- Pin ---
 const int IR_LEDS_TRANS[3] = {9, 10, 11};  // LED1, LED2, LED3

@@ -20,21 +20,25 @@
   <section class="max-w-5xl mx-auto mt-10 px-6">
     <h2 class="text-2xl font-semibold mb-4">Project Overview</h2>
     <p class="leading-relaxed">
-      The IoT Autovelox is a didactic system designed to simulate a smart speed detection
-      device.<br>
+      The Speed Camera project is an educational system designed to simulate an intelligent speed detection device.<br>
       It uses an 
       <strong>ESP32</strong> 
       board equipped with 
       <strong>two infrared sensors</strong>
-      to measure vehicle velocity and send alerts through an 
-      <strong>infrared beacon</strong> 
-      to a
-      <strong>remote Arduino car module</strong>.<br> 
-      The project integrates hardware sensing, wireless communication, and web-based visualization in an IoT context. 
+      to measure the time taken by the vehicle to move from the first to the second signal, 
+      then calculates the speed and illuminates the corresponding LED, saving the data.<br>
+      
+      The car part uses an <strong>Arduino UNO </strong>
+      board equipped with <strong>an infrared receiver </strong>
+      which, when it picks up a signal, alerts a hypothetical driver with 
+      <strong>a dedicated sound emitter and LED</strong>.<br>
+
+      The project integrates hardware sensors, wired communication and web-based visualisation in an IoT context. 
       <!-- si spera di arrivarci    -->
     </p>
+    <!-- schematics o altra foto-->
     <img src="temp.png" alt="System Diagram" class="mx-auto mt-6 rounded-lg shadow-lg w-3/4">
-  </section>
+  </section> 
 
   <!-- architettura -->
   <section class="max-w-5xl mx-auto mt-12 px-6">

@@ -4,6 +4,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   console.log("IoT Autovelox Page Loaded Successfully");
 });
+addEventListener
 
 
 /**
