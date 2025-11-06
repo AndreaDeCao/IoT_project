@@ -1,18 +1,110 @@
 <!DOCTYPE html>
-
-<html
-    lang="en"
-    xmlns:og="http://ogp.me/ns#"
-    xmlns:fb="http://www.facebook.com/2008/fbml"   >
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/x-icon" href="static/favicon.ico">
-    <title>IoT Project Documentation</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IoT Speed Camera Project</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="script.js" defer></script>
 </head>
-<body>
-    <h1>Welcome to the Documentation</h1>
-    <p>This is the main index page for the documentation.</p>
+<body class="bg-gray-50 text-gray-800">
+  <!-- Header -->
+  <header class="bg-blue-700 text-white py-8 shadow-lg">
+    <div class="max-w-5xl mx-auto text-center">
+      <h1 class="text-4xl font-bold">IoT Speed Camera Project</h1>
+      <p class="text-lg mt-2">Embedded Software for the Internet of Things</p>
+    </div>
+  </header>
 
+  <!-- Intro Section -->
+  <section class="max-w-5xl mx-auto mt-10 px-6">
+    <h2 class="text-2xl font-semibold mb-4">Project Overview</h2>
+    <p class="leading-relaxed">
+      The IoT Autovelox is a didactic system designed to simulate a smart speed detection
+      device.<br>
+      It uses an 
+      <strong>ESP32</strong> 
+      board equipped with 
+      <strong>two infrared sensors</strong>
+      to measure vehicle velocity and send alerts through an 
+      <strong>infrared beacon</strong> 
+      to a
+      <strong>remote Arduino car module</strong>.<br> 
+      The project integrates hardware sensing, wireless communication, and web-based visualization in an IoT context. 
+      <!-- si spera di arrivarci    -->
+    </p>
+    <img src="temp.png" alt="System Diagram" class="mx-auto mt-6 rounded-lg shadow-lg w-3/4">
+  </section>
+
+  <!-- architettura -->
+  <section class="max-w-5xl mx-auto mt-12 px-6">
+    <h2 class="text-2xl font-semibold mb-4">System Architecture</h2>
+    <div class="grid md:grid-cols-2 gap-8">
+      <div>
+        <h3 class="font-semibold text-lg mb-2">ESP32 (Autovelox Unit)</h3>
+        <ul class="list-disc ml-6 space-y-1">
+          <li>Reads IR sensors for speed measurement</li>
+          <li>Calculates velocity and detects overspeed</li>
+          <li>Hosts a web server showing speed logs</li>
+          <li>Sends IR beacon to Arduino car</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-semibold text-lg mb-2">Arduino Car Receiver</h3>
+        <ul class="list-disc ml-6 space-y-1">
+          <li>Receives IR beacon from ESP32</li>
+          <li>Activates LED or buzzer alert</li>
+          <li>Simulates driver notification system</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Caratteristiche -->
+  <section class="bg-gray-100 py-12 mt-12">
+    <div class="max-w-5xl mx-auto px-6">
+      <h2 class="text-2xl font-semibold mb-6 text-center">Key Features</h2>
+      <div class="grid md:grid-cols-3 gap-8 text-center">
+        <div class="p-6 bg-white shadow rounded-xl">
+          <h3 class="font-semibold mb-2">Real-Time Speed Detection</h3>
+          <p>Calculates vehicle speed from dual IR sensors.</p>
+        </div>
+        <div class="p-6 bg-white shadow rounded-xl">
+          <h3 class="font-semibold mb-2">Web Dashboard</h3>
+          <p>ESP32.</p>
+        </div>
+        <div class="p-6 bg-white shadow rounded-xl">
+          <h3 class="font-semibold mb-2">IoT Communication</h3>
+          <p>inserire più dettagli.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- video -->
+  <section class="max-w-5xl mx-auto mt-12 px-6 text-center">
+    <h2 class="text-2xl font-semibold mb-4">Demonstration</h2>
+    <p>Watch the prototype in action and see how overspeed alerts are handled.</p>
+    <video controls class="mx-auto mt-4 rounded-lg shadow-lg w-3/4">
+      <source src="temp.mp4" type="video/mp4">
+      messaggio da inserire
+    </video>
+  </section>
+
+  <!-- Links -->
+  <section class="max-w-5xl mx-auto mt-12 px-6 text-center">
+    <h2 class="text-2xl font-semibold mb-4">Resources</h2>
+    <div class="flex flex-wrap justify-center gap-6">
+      <a href="../firmware/esp32" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700">ESP32 Firmware</a>
+      <a href="../firmware/arduino_car" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700">Arduino Receiver Firmware</a>
+      <a href="../report/IoT_Autovelox_Report.pdf" class="bg-gray-700 text-white px-5 py-2 rounded-lg hover:bg-gray-800">Project Report</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-blue-700 text-white mt-12 py-6 text-center">
+    <p>© 2025 Embedded Software and IoT Project</p>
+    <p class="text-sm mt-1">Developed by Group_14</p>
+  </footer>
 </body>
 </html>
