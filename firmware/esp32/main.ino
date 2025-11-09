@@ -41,6 +41,9 @@ void sensore2Attivato() {
   }
 }
 
+/**
+  * Main setup for led and pin configuration
+  */
 void setup() {
   Serial.begin(9600);
 
