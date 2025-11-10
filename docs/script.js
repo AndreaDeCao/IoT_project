@@ -4,13 +4,12 @@
 document.addEventListener("DOMContentLoaded", () => {
   console.log("IoT Autovelox Page Loaded Successfully");
 });
-addEventListener
 
-
+/*
 document.getElementById("temp").addEventListener("click", () => {
   alert("You are downloading the temporary project report.");
 });
-
+*/
 
 /**
  * It was used at the beginning to verify that the page is functioning correctly
