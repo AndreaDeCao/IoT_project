@@ -6,6 +6,7 @@
   <title>IoT Speed Camera Project</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="script.js" defer></script>
+
 </head>
 <body class="bg-gray-50 text-gray-800">
   <!-- Header -->
@@ -37,7 +38,29 @@
       <!-- si spera di arrivarci    -->
     </p>
     <!-- schematics o altra foto-->
-    <img src="../hardware/Schematica_motori.png" alt="System Diagram" class="mx-auto mt-6 rounded-lg shadow-lg w-3/4">
+
+
+      
+    <div id="slider-container" class="w-full max-w-xl mx-auto relative overflow-hidden mt-10">
+      <div id="slider" class="flex space-x-4 transition-transform duration-500 px-2">
+        <img src="../images/Schematica_motori.png" class="w-4/5 flex-shrink-0 rounded-xl">
+        <img src="../images/testing.png" class="w-4/5 flex-shrink-0 rounded-xl">
+        <img src="../images/Schematica_motori_2.png" class="w-4/5 flex-shrink-0 rounded-xl">
+      </div>
+
+      <!-- Bottoni -->
+      <button id="prev" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white bg-opacity-75 px-4 py-2 rounded-full shadow "> < </button>
+      
+
+      <button id="next" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white bg-opacity-75 px-4 py-2 rounded-full shadow">></button>
+    </div>
+
+    <!--
+    <img src="../images/Schematica_motori.png" alt="System Diagram" class="mx-auto mt-6 rounded-lg shadow-lg w-3/4">
+    <img src="../images/testing.png" alt="System Diagram" class="mx-auto mt-6 rounded-lg shadow-lg w-3/4">
+    <img src="../images/Schematica_motori_2.png" alt="System Diagram" class="mx-auto mt-6 rounded-lg shadow-lg w-3/4">
+    -->
+
   </section> 
 
   <!-- architettura -->
@@ -75,11 +98,11 @@
         </div>
         <div class="p-6 bg-white shadow rounded-xl">
           <h3 class="font-semibold mb-2">Web Dashboard</h3>
-          <p>ESP32.</p>
+          <p>Live monitoring of vehicle speed, timestamps, and system status.</p>
         </div>
         <div class="p-6 bg-white shadow rounded-xl">
-          <h3 class="font-semibold mb-2">IoT Communication</h3>
-          <p>inserire più dettagli.</p>
+          <h3 class="font-semibold mb-2">Driver Alert System</h3>
+          <p>Activates LED or buzzer alerts on the Arduino car receiver.</p>
         </div>
       </div>
     </div>
@@ -90,7 +113,7 @@
     <h2 class="text-2xl font-semibold mb-4">Demonstration</h2>
     <p>Watch the prototype in action and see how overspeed alerts are handled.</p>
     <video controls class="mx-auto mt-4 rounded-lg shadow-lg w-3/4">
-      <source src="temp.mp4" type="video/mp4">
+      <source src="../images/testing.mp4" type="video/mp4">
       messaggio da inserire
     </video>
   </section>
