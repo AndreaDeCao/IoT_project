@@ -5,8 +5,8 @@
 #include <WiFi.h>
 #include <WebServer.h>
 
-const char* ssid = "ESP32_SSID";
-const char* password = "ESP32_PASSWORD";
+const char* ssid = "ESP32_SSID";          //temp
+const char* password = "ESP32_PASSWORD";  //temp
 
 WebServer server(80);
 
@@ -23,7 +23,7 @@ void handleData() {
 }
 
 void setup() {
-  Serial.begin(9600); //115200
+  Serial.begin(115200); //115200
 
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
