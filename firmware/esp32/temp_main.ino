@@ -13,6 +13,10 @@ WebServer server(80);
 // Variabili di esempio
 float speed = 12.5;
 bool led = true;
+float tempo1 = 0;
+// float tempo2??;    //tempo effettivo per arrivo alla seconda barriera
+
+//dati infrarosso quindi il tempo
 
 void handleData() {
   String json = "{";
