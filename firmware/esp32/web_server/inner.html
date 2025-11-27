@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IoT Speed Camera Dashboard</title>
+  <!-- Tailwind CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6">
+
+  <h1 class="text-3xl font-bold mb-6">IoT Speed Camera Dashboard</h1>
+
+  <div class="w-full max-w-xl">
+    <!-- Speed Card -->
+    <div class="bg-white shadow-md rounded-xl p-6 mb-4">
+      <h2 class="text-xl font-semibold mb-2">Vehicle Speed</h2>
+      <p id="speed" class="text-2xl font-bold text-blue-600">-- m/s</p>
+    </div>
+
+    <!-- LED Status Card -->
+    <div class="bg-white shadow-md rounded-xl p-6 mb-4 flex items-center">
+      <h2 class="text-xl font-semibold">Signal LED Status</h2>
+      <span id="ledStatus" class="ml-4 w-6 h-6 rounded-full bg-red-500"></span>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
