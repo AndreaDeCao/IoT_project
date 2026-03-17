@@ -38,7 +38,7 @@ extern const unsigned char wifiSymbol[] PROGMEM  = {
 };
 
 // define paramters of transmitters
-extern int* ptr;
+
 extern const float distanza12_cm = 10.0; // distance between two transimtters
 extern const float sogliaVelocita = 50.0; // cm/s
 
