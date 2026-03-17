@@ -53,11 +53,13 @@ State_v current_state = WAIT;
 // ISR: handle the interruot the car is detected at the first barrier
 void ISR_SENSOR1() {
   passaggio1 = false; // macchina passata
+  Serial.println("ISR 1 triggered!");
 }
 
 // ISR: handle the interruot the car is detected at the first barrier
 void ISR_SENSOR2() {
   passaggio2 = false;
+  Serial.println("ISR 2 triggered!");
 }
 
 // function where i start the sampling 
@@ -72,7 +74,7 @@ void fn_BAR1() {
   // use this two lines to test the hardware but you will use the value from sensor when we will have it
   //passaggio1=false; // car detected forzato
   //passaggio1=true //stay in the loop (car is not detected yet)
-    while (/*digitalRead(IR_LEDS_REC[0]==HIGH)*/passaggio1) {
+    while (passaggio1) {
       display.clearDisplay();
       BlueOn();
       // irsend2.sendRaw(rawData, sizeRaw, CARRIER_FREQ);
@@ -82,15 +84,19 @@ void fn_BAR1() {
       if(x > SCREEN_WIDTH - 32) x = 0;
       delay(100);
     }
+    
+    tempo1 = micros(); // questo ora è preciso
+    Serial.println("Auto rilevata a barriera 1");
+
+    // Mostra messaggio di conferma sul display
     display.clearDisplay();
     display.setTextSize(1);
     display.setCursor(0,0);
     display.println("auto rilevata  a barriera 1");
     display.display();  
-    delay(1000);
-    tempo1 = micros(); // questo ora è preciso
-    current_state=IR2;
+    delay(1000);        // permette di leggere il messaggio
     
+    current_state=IR2;
 }
  // function that sample the instant where car pass through the second IR barrier
 void fn_BAR2() {
@@ -109,13 +115,17 @@ void fn_BAR2() {
       delay(100);
       
     }
+
+    tempo2 = micros(); // questo ora è preciso
+    Serial.println("Auto rilevata a barriera 2");
+
     display.clearDisplay();
     display.setTextSize(1);
     display.setCursor(0,0);
     display.println("auto rilevata  a barriera 2");
     display.display();  
     delay(1000);
-    tempo2 = micros(); // questo ora è preciso
+   
     current_state = COMPUTATION; // Torna allo stato iniziale
 
 
@@ -186,7 +196,8 @@ void setup() {
   Wire.begin(21,22); // SDA, SCL for I2C communiction used in LCD
 
 
-
+  pinMode(IR_SENSOR1, INPUT_PULLUP); // IR sensor 1 as input with pull-up resistor
+  pinMode(IR_SENSOR2, INPUT_PULLUP); // IR sensor 2 as input with
   // enable iNterrupt when infrared signal is RETURNED (logic level of the digital pin associated to IR sensor  goes HIGH->LOW) 
   attachInterrupt(digitalPinToInterrupt(IR_SENSOR1 ), ISR_SENSOR1, FALLING); // FALLING TRANSIZIONE 1->0 LOGICO
   attachInterrupt(digitalPinToInterrupt(IR_SENSOR2 ), ISR_SENSOR2, FALLING);
