@@ -38,13 +38,10 @@ extern const unsigned char wifiSymbol[] PROGMEM  = {
 };
 
 // define paramters of transmitters
-
 extern const float distanza12_cm = 10.0; // distance between two transimtters
 extern const float sogliaVelocita = 50.0; // cm/s
 
-
-// function declaration
-
+const int LED_PIN[] = {14,25, 26, 27};
 //state func
 void fn_START(void);
 void fn_BAR1(void);
