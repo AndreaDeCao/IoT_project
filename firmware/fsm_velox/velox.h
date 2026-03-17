@@ -37,35 +37,27 @@ extern const unsigned char wifiSymbol[] PROGMEM  = {
   0x00, 0x00, 0x00, 0x00
 };
 
-// constants 
-// define digital pin that are associate to transmitters
-//extern const int IR_LEDS_TRANS[3] = {28, 29, 32};
-// define digital pin that are associate to receivers
-//extern const int IR_LEDS_REC[3] = {33, 34,35}; 
-// define digital pin that are associated to debug LEDs
-//extern const int LED_DEBUG[4] = {3, 4, 5, 6}; //18 25 26 2u7
-
 // define paramters of transmitters
 extern int* ptr;
 extern const float distanza12_cm = 10.0; // distance between two transimtters
 extern const float sogliaVelocita = 50.0; // cm/s
-extern const int CARRIER_FREQ = 38;  // kHz
 
-// variables 
-extern  const int numImpulsi=5;    // how much times IR emits a pulse at 38KHz
-extern  const uint16_t durataOn=500;// //time duration of pulse when is on
-extern  const uint16_t durataOff=500; //time duration of pulse when is off
 
 // function declaration
-uint16_t* generaImpulsi(int numImpulsi, uint16_t durataOn, uint16_t durataOff, int &sizeOut);
+
+//state func
 void fn_START(void);
 void fn_BAR1(void);
 void fn_BAR2(void);
 void fn_RESULT(void);
+
+//func to start the led (blink)
 void YellowOn(void);
 void RedOn(void);
 void BlueOn(void);
 void GreenOn(void);
+
+//func for interrupt between the barries
 void ISR_SENSOR1(void);
 void ISR_SENSOR2(void);
 

@@ -1,8 +1,10 @@
-#include <IRremote.h>
+// #include <IRremote.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
+#include <Adafruit_SSD1306.h>   //screen library
+
 #include "velox.h"
+
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET    -1  // Non usato su ESP32
@@ -10,48 +12,18 @@
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 //global variables (they are used in more functions) all function can access to them
-int sizeRaw; 
+
+//volatile --> per modificare negli interrupt, prende da SRAM e non da registro
 volatile unsigned long tempo1;
 volatile unsigned long tempo2;
 volatile bool passaggio1=true; // ir barrier 1 on  (no car detected yet)
 volatile bool passaggio2=true; // ir barrier 2 on (no car detected yet)
-uint16_t* rawData=nullptr;
 
-/*// Creation of three IR transmitter objects
-IRsend irsend1(IR_LEDS_TRANS[0]); // iresend1 is associated with pin 28
-IRsend irsend2(IR_LEDS_TRANS[1]); // iresend2 is associated with pin 29
-IRsend irsend3(IR_LEDS_TRANS[2]); // iresend3 is associated with pin 32
+#define IR_SENSOR1 18
+#define IR_SENSOR2 19
 
-// Creation of three IR receiver objects 
-IRrecv ir_rec1(IR_LEDS_REC[0]);// iresend1 is associated with pin 33
-IRrecv ir_rec2(IR_LEDS_REC[1]); // iresend2 is associated with pin 34
-IRrecv ir_rec3(IR_LEDS_REC[2]); // iresend3 is associated with pin 35
-*/
-
-
-// if i define variables in set up they are visible only in set up so avoid to dothat if are used in more functions
-
-/*------------------------------------------------------------------------------------------------------------------*/
-
- /*//generation of rawDta that cotains time on , time off of IR MODULES
-uint16_t* generaImpulsi(int numImpulsi, uint16_t durataOn, uint16_t durataOff) {
-  // Numero totale di elementi = 2 per ogni impulso (ON + OFF)
-  sizeRaw= numImpulsi * 2;
-  
-  // Alloca dinamicamente array
-  uint16_t* raw = new uint16_t[sizeRaw]; // contains time in microsecond on and off for each IR pulse
-    
-  for (int i = 0; i < numImpulsi; i++) {
-    raw[i*2] = durataOn;     // LED acceso
-    raw[i*2 + 1] = durataOff; // LED spento
-  }
-  
-  return raw; // ricordati di liberare la memoria con delete[] dopo l'uso (verifica questa cosa)
-}
-*/
 
 typedef enum{
-
   WAIT,
   IR1,
   IR2,
@@ -91,9 +63,8 @@ void ISR_SENSOR2() {
 // function where i start the sampling 
 void fn_START() {
   Serial.println("start");
-    irsend1.sendRaw(rawData, sizeRaw, CARRIER_FREQ);  
-    YellowOn();      
-    current_state = IR1; 
+  YellowOn();      
+  current_state = IR1; 
 }
  // function that sample the instant where car pass through the first IR barrier
 void fn_BAR1() {
@@ -104,7 +75,7 @@ void fn_BAR1() {
     while (/*digitalRead(IR_LEDS_REC[0]==HIGH)*/passaggio1) {
       display.clearDisplay();
       BlueOn();
-      irsend2.sendRaw(rawData, sizeRaw, CARRIER_FREQ);
+      // irsend2.sendRaw(rawData, sizeRaw, CARRIER_FREQ);
       display.drawBitmap(x, 25, wifiSymbol, 32, 32, SSD1306_WHITE);
       display.display();
       x++;
@@ -202,26 +173,23 @@ void fn_RESULT() {
 
 void setup() {
   Serial.begin(9600);
+
     //Display initialization
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println("OLED non trovato!");
-    for(;;); // infinite loop 
+    // for(;;); // infinite loop 
+    
+    return ; // "error initialization SSD1306_SWITCHCAPVCC"
   }
-  // setting the duration of each pulse in array called rawdata
-  rawData=generaImpulsi(numImpulsi, durataOn, durataOff);
+
+  //uso pint 21,22 per comunicszione tra eesp e schermo tramite protocollo  I2C
   Wire.begin(21,22); // SDA, SCL for I2C communiction used in LCD
 
-  /*// Setting IR transmitter as input
-  for (int i = 0; i < 3; i++) pinMode(IR_LEDS_TRANS[i], OUTPUT);
-  // Setting IR transmitter as input
-  for (int i = 0; i < 3; i++) pinMode(IR_LEDS_REC[i], INPUT);
-  // Setting debug leds as input
-  for(int i=0;i<4;i++) pinMode(LED_DEBUG[i],OUTPUT);
-  */
 
-  // enable iterrupt when infrared signal is interrupted(logic level of the digital pin associated to IR receiver  goes HIGH->LOW) so when an object interrupts the infrared signal
-  attachInterrupt(digitalPinToInterrupt(IR_LEDS_REC[0]), ISR_SENSOR1, FALLING); // FALLING TRANSIZIONE 1->0 LOGICO
-  attachInterrupt(digitalPinToInterrupt(IR_LEDS_REC[1]), ISR_SENSOR2, FALLING);
+
+  // enable iNterrupt when infrared signal is RETURNED (logic level of the digital pin associated to IR sensor  goes HIGH->LOW) 
+  attachInterrupt(digitalPinToInterrupt(IR_SENSOR1 ), ISR_SENSOR1, FALLING); // FALLING TRANSIZIONE 1->0 LOGICO
+  attachInterrupt(digitalPinToInterrupt(IR_SENSOR2 ), ISR_SENSOR2, FALLING);
   
   
 
@@ -234,6 +202,7 @@ void setup() {
   display.setTextSize(1);
   display.display();
 }
+
 void loop() {
     Serial.println("loop");
     // loop è l'equivalente del  "while(1)"
