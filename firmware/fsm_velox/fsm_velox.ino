@@ -2,7 +2,6 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>   //screen library
-
 #include "velox.h"
 
 #define SCREEN_WIDTH 128
@@ -77,7 +76,6 @@ void fn_BAR1() {
     while (passaggio1) {
       display.clearDisplay();
       BlueOn();
-      // irsend2.sendRaw(rawData, sizeRaw, CARRIER_FREQ);
       display.drawBitmap(x, 25, wifiSymbol, 32, 32, SSD1306_WHITE);
       display.display();
       x++;
@@ -100,14 +98,13 @@ void fn_BAR1() {
 }
  // function that sample the instant where car pass through the second IR barrier
 void fn_BAR2() {
-   int x = 0;
+  int x=0;
    // use this two lines to test the hardware but you will use the value from sensor when we will have it
    passaggio2=false; // car detected
    //passaggio2=true; stay in the loop (car is not detected yet)
-    while (/*digitalRead(IR_LEDS_REC[1]==HIGH)*/passaggio2) {
+    while (passaggio2) {
       display.clearDisplay();
       GreenOn();
-      //irsend2.sendRaw(rawData, sizeRaw, CARRIER_FREQ);
       display.drawBitmap(x, 25, wifiSymbol, 32, 32, SSD1306_WHITE);
       display.display();
       x++;
@@ -153,17 +150,16 @@ void fn_RESULT() {
     velocita12=51;
     if (velocita12 > sogliaVelocita) {
         RedOn();   
-        irsend3.sendRaw(rawData, sizeRaw, CARRIER_FREQ);
         Serial.println("IR3 inviato: velocita oltre soglia!");
     } else {
-        digitalWrite(IR_LEDS_TRANS[2], LOW); // LED3 spento se velocità ok
+        digitalWrite(LED_PIN[3], LOW); // LED4 spento se velocità ok
         Serial.println("Velocita ok, LED3 spento.");
     }
     
     bool check_vbool=true;
   
 
-    if ( /*digitalRead(IR_LEDS_REC[2])== HIGH*/check_vbool){
+    if (check_vbool){
       display.clearDisplay();
       display.setTextSize(2);
       display.setTextColor(SSD1306_WHITE);
@@ -171,7 +167,7 @@ void fn_RESULT() {
       display.println("limite velocità superato !!");
       display.display();
       delay(1000);
-      digitalWrite(LED_DEBUG[3],LOW);
+      //digitalWrite(LED_DEBUG[3],LOW);
     }
     // reset parameter for a new measuremnt
     tempo1 = 0;
@@ -183,7 +179,6 @@ void fn_RESULT() {
 
 void setup() {
   Serial.begin(9600);
-
     //Display initialization
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println("OLED non trovato!");
@@ -191,10 +186,8 @@ void setup() {
     
     return ; // "error initialization SSD1306_SWITCHCAPVCC"
   }
-
-  //uso pint 21,22 per comunicszione tra eesp e schermo tramite protocollo  I2C
-  Wire.begin(21,22); // SDA, SCL for I2C communiction used in LCD
-
+     //uso pint 21,22 per comunicszione tra eesp e schermo tramite protocollo  I2C
+   Wire.begin(21,22); // SDA, SCL for I2C communiction used in LCD
 
   pinMode(IR_SENSOR1, INPUT_PULLUP); // IR sensor 1 as input with pull-up resistor
   pinMode(IR_SENSOR2, INPUT_PULLUP); // IR sensor 2 as input with
@@ -232,9 +225,9 @@ void YellowOn(void){
   display.setCursor(0,0);
   display.println("WAIT");
   display.display();  
-  digitalWrite(LED_DEBUG[0],HIGH);
+  digitalWrite(LED_PIN[0],HIGH);
   delay(1000);
-  digitalWrite(LED_DEBUG[0],LOW);
+  digitalWrite(LED_PIN[0],LOW);
 }
 
 void BlueOn(void){
@@ -242,7 +235,10 @@ void BlueOn(void){
   display.setCursor(0,0);
   display.println("Sample 1"); 
   display.display();   
-  digitalWrite(LED_DEBUG[1], HIGH);  
+  digitalWrite(LED_PIN[1], HIGH); 
+  delay(1000);
+  digitalWrite(LED_PIN[1], HIGH); 
+
 }
 
 void GreenOn(void){
@@ -251,7 +247,9 @@ void GreenOn(void){
   display.setCursor(0,0);
   display.println("Sample 2");
   display.display();  
-  digitalWrite(LED_DEBUG[2],HIGH);
+  digitalWrite(LED_PIN[2],HIGH);
+  delay(1000);
+  digitalWrite(LED_PIN[2],HIGH);
 
 }
 
@@ -261,6 +259,8 @@ void RedOn(void){
   display.setCursor(0,0);
   display.println("COMPIUTE");
   display.display();  
-  digitalWrite(LED_DEBUG[3],HIGH);
+  digitalWrite(LED_PIN[3],HIGH);
   delay(1000);
+  digitalWrite(LED_PIN[3],HIGH);
+
 }
