@@ -1,103 +1,165 @@
-#include <SPI.h>
-#include "MPU6050_6Axis_MotionApps20.h"
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-    #include "Wire.h"
+#include <SPI.h>                          // Include the library for the SPI comunication useb by NRF24
+#include "MPU6050_6Axis_MotionApps20.h"   // Include the advance functions for processing quaternions using DMP
+#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE // In IC2dev.h in the row riga 61 #define I2CDEV_IMPLEMENTATION       I2CDEV_ARDUINO_WIRE
+    #include "Wire.h"                     // Include I2C comunication library
 #endif
-#include <nRF24L01.h>
-#include <RF24.h>
-#include "I2Cdev.h"
+#include <nRF24L01.h>                     // Library used for the coomunication between the microcontroller and NRF24
+#include <RF24.h>                         // Libreria principale per la gestione della radio RF24
+#include "I2Cdev.h"                       // Libreria di supporto per protocollo I2C
 
+RF24 radio(7, 8);                         // Creation for an object radio setting i pin CE=7 e CSN=8 used for the SPI connetion (you can chose every pin)
+bool dmpReady = false;                    // Flag to verify if the MPU is correctely configured
 
-RF24 radio(7, 8);  // CE, CSN 
-bool dmpReady = false; 
-
-const byte address[6] = "00001"; 
-struct DataPacket {
-  byte x;
-  bytet y;
-  byte z;
+const byte address[6] = "RXSTE";          // Unique adress used for communication between NRF24 na d Arduino
+struct DataPacket {                       // Structure that contain x=roll,y=pitch and z=yaw
+  byte x;                                 // Value x axis (Roll) mapped 0-254
+  byte y;                                 // Value y axis (Pitch) mappato 0-254
+  byte z;                                 // Value z axis (Yaw) mapped 0-254
 };
-DataPacket data;
-uint8_t fifoBuffer[64]; // FIFO storage buffer
-Quaternion q;           // [w, x, y, z]         quaternion container
-VectorFloat gravity;    // [x, y, z]            gravity vector
-float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
-MPU6050 mpu;
+DataPacket data;                          // Creation of an instance of structure called 'data'
 
-
+uint8_t fifoBuffer[64];               // uint8_t intero a 8 bit: ho 64 celle da 8 bit(1Byte)   // Buffer that contains data that comee from the processor (DMP) inside MPU
+Quaternion q;                             // Variabile for memorizinng rotation data  in quaternion format
+VectorFloat gravity;                      // Variabile pfor memorizing gravity value 
+float ypr[3];                            // Array that contains final angles in degrees: [Yaw, Pitch, Roll]
+MPU6050 mpu;                              // Creaation of an object mpu in order to interact with the sensor
 
 void setupMPU(){
-  // join I2C bus (I2Cdev library doesn't do this automatically)
-  #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-      Wire.begin();
-      Wire.setClock(400000); // 400kHz I2C clock. Comment this line if having compilation difficulties and set 100Khz
-      
+  // Inizialization of I2C comunication
+  #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE // if row 61 in I2Cdev.h I2CDEV_IMPLEMENTATION is set to I2CDEV_ARDUINO_WIRE enble the bus I2C
+      Wire.begin();                       // Enables I2C bus as a master
+      Wire.setClock(400000);              // Imposta la velocità a 400kHz of I2C bus  (Fast Mode) in order to empty the buffer very fast avoiding data loss
   #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
       Fastwire::setup(400, true);
   #endif
 
-  mpu.initialize();
-  int devStatus = mpu.dmpInitialize();
-  // make sure it worked (returns 0 if so)
-  if (devStatus == 0) 
-  {
-      // Calibration Time: generate offsets and calibrate our MPU6050
-      mpu.CalibrateAccel(6);
-      mpu.CalibrateGyro(6);
-      mpu.setDMPEnabled(true);
-      dmpReady = true;
-  }
+  mpu.initialize();                       // Inizialization of the MPU sensor
+  int devStatus = mpu.dmpInitialize();    // Inizialization of the  Digital Motion Processor (DMP) 
+  // If the inizialization is good  dev status is set to 0 by mpu.dmpInitialize()
 
+  if (devStatus == 0)                    
+  {
+      mpu.CalibrateAccel(6);              // Calibration of  l'accelerometer (6 cicle of calibration to get the perfect zero condiotion )
+      mpu.CalibrateGyro(6);               // Calibration of gYROSCOPE (6 cicle of calibration to get the perfect zero condiotion)
+      mpu.setDMPEnabled(true);            // Enable DMP process to acquire and process data
+      dmpReady = true;                    // Set flag = TRUE: MPU i ready to acquire data
+  }
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(9600);                     // Start the serial comunication for the debug at 9600 baud ()
   Serial.println("=== TRASMETTITORE ===");
-  // Svegliamo l'MPU
-  if (!radio.begin()) {
-    Serial.println("Modulo NRF24 NON trovato!");
-    while (1);
-  }
-  radio.setChannel(108);              // Canale lontano dal WiFi
-  radio.setDataRate(RF24_250KBPS);    // Più stabile
-  radio.setPALevel(RF24_PA_MIN);      // Potenza bassa per test
-  radio.setRetries(5, 15);
-  radio.openWritingPipe(address);
-  radio.stopListening();           
   
+  if (!radio.begin()) {                   // Inizialization of the radio module; se fallisce entra nel blocco
+    Serial.println("Modulo NRF24 NON trovato!");
+    while (1);                          
+  }
+  
+  radio.setChannel(108);                  // Imposta la frequenza radio sul canale 108 (fuori banda WiFi standard)
+  radio.setDataRate(RF24_250KBPS);        // Velocity of  transmission low to increase stability and the distance TX-RX
+  radio.setPALevel(RF24_PA_MIN);      
+  radio.setRetries(5, 15);                // Try to send 15 times a packet [roll,pitch, yaw] for  5*250 microsecondi (250 us) per understand if  se the packet is sent to RX 
+  /*The value of 250 μs is the minimal delay to:
+
+  Sent a small packet
+
+  Switch from Transmissione modality to the receiver modality
+
+  Receive the ACK signal from the receiver
+
+  NOte that TX nee to return to transmission modality if ACK is not arrived yet from RX to TX.
+  // The packet need  to reach destination  250us minimum indeed if th value is lower than  250 
+  (for instance  100 μs), the chip will not have time to switch from transmission modality to reciver modality and doesn't receive ACK even if the ACK is correctely sent from RX */
+  
+  radio.openWritingPipe(address);         // Open a comunication channel asociated to the adress i have already defined
+  radio.stopListening();                  // Set the  modulo in TX modality 
   Serial.println("Setup completato!");
-  setupMPU();  
+  setupMPU();                             // Chiama la funzione di configurazione del sensore di movimento
 }
 
 void loop() {
-  if (!dmpReady) return; // se dmpReady è falso non è andata bene il set up
- // 3. Leggiamo solo se i dati sono pronti nel buffer
+  if (!dmpReady) return;                  // If MPU is not ready exit from loop
+
+  // Check if a packet is available in the buffer
+  //fifobuffer=[Quatenrions:W,X,Y,Z,Gyro: ,X,Y,Z,Acdel:X,Y,Z]
   if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer)) { 
-   mpu.dmpGetQuaternion(&q, fifoBuffer);
-    mpu.dmpGetGravity(&gravity, &q);
-    mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-    int xAxisValue = constrain(ypr[2] * 180/M_PI, -90, 90);
-    int yAxisValue = constrain(ypr[1] * 180/M_PI, -90, 90);
-    int zAxisValue = constrain(ypr[0] * 180/M_PI, -90, 90);    
-    data.x = map(xAxisValue, -90, 90, 0, 254); 
-    data.y= map(yAxisValue, -90, 90, 0, 254);
-    data.z = map(zAxisValue, -90, 90, 0, 254);    
+    mpu.dmpGetQuaternion(&q, fifoBuffer);         // Extraction of  quaternioni from buffer
+    mpu.dmpGetGravity(&gravity, &q);              // Calculation of  gravity vector based on quaternions
+    mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);    // Conversion of data from Euleaian angle(Yaw/Pitch/Roll) to radians
+    
+    // Conversion from radians to  degrees all values must be between -50 and 50 if value <-50 the value is set to- 50 if value >50 the vlaue is set to 50
+    int xAxisValue = constrain(ypr[2] * 180/M_PI, -50, 50); 
+    int yAxisValue = constrain(ypr[1] * 180/M_PI, -50, 50);
+    int zAxisValue = constrain(ypr[0] * 180/M_PI, -50, 50);    
+    
+    // Mapping (-50/+50) in a range 0-254 that occupy onlu 1 byte (small packet transmissio is faster )
+    data.x = map(xAxisValue, -50, 50, 0, 254); 
+    data.y = map(yAxisValue, -50, 50, 0, 254);
+    data.z = map(zAxisValue, -50, 50, 0, 254);    
   }
 
+  // Invia la struttura 'data' via radio e salva l'esito (true/false) in 'ok'
+  bool ok = radio.write(&data, sizeof(data));
 
-  // 4. Invio via radio
-  bool ok=radio.write(&data, sizeof(data));
-
-  // Debug seriale
+  // Stampa i valori correnti sulla porta seriale per il monitoraggio
   Serial.print("X = "); Serial.print(data.x);
   Serial.print(" | Y = "); Serial.print(data.y);
   Serial.print(" | Z = "); Serial.println(data.z);
+  /////
+  if(data.y<75){
+    if (data.x < 75) {
+      // processCarMovement(FORWARD_LEFT);
+      Serial.println("avanti sinistra");
+    } 
+    else if (data.x > 175) {
+      // processCarMovement(FORWARD_RIGHT);
+      Serial.println("avanti destra");
+    }
+    else {
+    
+      // Se Y è < 75 ma X non è né a destra né a sinistra, per forza è in mezzo!
+      // processCarMovement(FORWARD);
+      Serial.println("solo avanti");
+    }
+     
 
-  delay(50); // Un piccolo delay aiuta la stabilità della radio
+  }
+  /////
+  else if (data.y > 175)  // indietro
+  {
+    if (data.x < 75) {
+
+      Serial.println("indietro sinistra");
+    } 
+    else if (data.x > 175) {
+      Serial.println("indietro destra");
+    } 
+    else {
+      Serial.println("solo indietro");
+    }
+  }
+  // rotation on xy plane
+  else if (data.z > 175)
+  {
+      Serial.println("ruota a destra da fermo");
+  }
+  else if (data.z < 75)
+  {
+
+    Serial.println("ruota a sinistra da fermo");
+
+  }
+  else
+  {
+    Serial.println("stop");
+    
+  }
+
+  
   if(ok){
-    Serial.println("inviato comnado di guida");
+    Serial.println("inviato comando di guida"); // Messaggio se l'invio è riuscito
   }
   else{
-    Serial.println("errore di comunicazione");
+    Serial.println("errore di comunicazione");   // Messaggio se il ricevitore non ha confermato la ricezione
   }
 }
