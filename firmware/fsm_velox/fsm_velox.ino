@@ -100,7 +100,7 @@ void fn_BAR1() {
 }
  // function that sample the instant where car pass through the second IR barrier
 void fn_BAR2() {
-   int pixel_growing = 0;
+   int x = 0;
    // use this two lines to test the hardware but you will use the value from sensor when we will have it
    passaggio2=false; // car detected
    //passaggio2=true; stay in the loop (car is not detected yet)
@@ -110,8 +110,8 @@ void fn_BAR2() {
       //irsend2.sendRaw(rawData, sizeRaw, CARRIER_FREQ);
       display.drawBitmap(x, 25, wifiSymbol, 32, 32, SSD1306_WHITE);
       display.display();
-      pixel_growing++;
-      if(pixel_growing > SCREEN_WIDTH - 32) pixel_growing = 0; // condtion to stay within the lcd width dimension
+      x++;
+      if(x > SCREEN_WIDTH - 32) x = 0; // condtion to stay within the lcd width dimension
       delay(100);
       
     }
