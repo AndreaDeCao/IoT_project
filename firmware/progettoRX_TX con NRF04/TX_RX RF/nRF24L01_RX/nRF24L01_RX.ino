@@ -9,13 +9,13 @@ const byte address[6] = "TXSTE"; // RF library needs an adress of 5 characters o
 
 // right motors A
 #define ENA 5    // PWM pin that handles the speed of motor A
-#define IN1 2    // digital pin that handle the direction of motor A
-#define IN2 4    // digital pin that handle the direction of motor A
+#define IN1 9    // digital pin that handle the direction of motor A
+#define IN2 10    // digital pin that handle the direction of motor A
 
 // left motors B
 #define ENB 6    // PWM pin that handles the speed of motor B
-#define IN3 3    // digital pin that handle the direction of motor B
-#define IN4 9    // digital pin that handle the direction of motor B
+#define IN3 2    // digital pin that handle the direction of motor B
+#define IN4 4    // digital pin that handle the direction of motor B
 
 // data structure that contain 3 variable
 struct DataPacket {
@@ -27,11 +27,9 @@ struct DataPacket {
 DataPacket data;
 
 // function declaration
-void ruotaDestra(int sx, int dx);
-void ruotaSinistra(int sx, int dx);
-void avanti(int sx, int dx);
-void ferma(int sx, int dx);
-void indietro(int sx, int dx);
+void goForward(int sx, int dx);
+void stop();
+void goBackward(int sx, int dx);
 
 
 void setup() {
@@ -91,17 +89,18 @@ void movimento(int x, int y) {
  // forward condition
 if(data.y<75){
     if (data.x < 75) {
-      avanti(sx, dx);
-      Serial.println("avanti sinistra");
+       goForward(sx, dx);
+       Serial.println(" GO FORWARD LEFT");
+      
     } 
     else if (data.x > 175) {
-      Serial.println("avanti destra");
-      avanti(sx, dx);
+      goForward(sx, dx);
+       Serial.println(" GO FORWARD RIGHT");
     }
     else {
       moveX=0;
-      Serial.println("solo avanti");
-      avanti(sx, dx);
+      Serial.println("GO FORWARD");
+      goForward(sx, dx);
     }
     
   }
@@ -109,93 +108,46 @@ if(data.y<75){
   else if (data.y > 175)  // back condition
   {
     if (data.x < 75) {
-      indietro( sx, dx);
-      Serial.println("indietro sinistra");
+      goBackward( sx, dx);
+      Serial.println("GO BACKWARD LEFT");
     } 
     else if (data.x > 175) {
-      indietro(sx, dx);
-      Serial.println("indietro destra");
+      goBackward(sx, dx);
+      Serial.println(" GO BACKWARD RIGHT");
     } 
     else {
-      indietro(sx, dx);
+      goBackward(sx, dx);
       moveX=0;
-      Serial.println("solo indietro");
+      Serial.println(" GO ONLY BACKWARD");
     }
   }
   // rotation on z axis 
   else if (data.z > 175)
   {
-      ruotaDestra(sx, dx);
-      Serial.println("ruota a destra da fermo");
+      //ruotaDestra(sx, dx);
+      stop();
+      Serial.println("STOP");
   }
   else if (data.z < 75)
   {
-    ruotaSinistra(sx, dx);
-    Serial.println("ruota a sinistra da fermo");
+    //ruotaSinistra(sx, dx);
+    stop();
+    Serial.println("STOP");
 
   }
-  // stop condition
   else
   {
     //processCarMovement(STOP);  
-    ferma();
-    Serial.println("stop");
+    stop();
+    Serial.println("STOP");
     
   }
 }
   
-// 
-/*void avanti() {
-  digitalWrite(IN1, HIGH); 
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
 
-  analogWrite(ENA, speed);
-  analogWrite(ENB, speed);
-}
 
-void indietro() {
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
-
-  analogWrite(ENA, speed);
-  analogWrite(ENB, speed);
-}
-
-void destra() {
-  // sinistro avanti, destro fermo
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, LOW);
-
-  analogWrite(ENA, speed);   // motore sinistro
-  analogWrite(ENB, 0);     // motore destro fermo
-}
-
-void sinistra() {
-  // destro avanti, sinistro fermo
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-
-  analogWrite(ENA, 0);     // motore sinistro fermo
-  analogWrite(ENB, speed);   // motore destro
-}
-
-void stopMotors() {
-  analogWrite(ENA, 0);
-  analogWrite(ENB, 0);
-}
-*/
-void avanti(int sx, int dx) {
-  Serial.println("-> AVANTI");
+void goForward(int sx, int dx) {
+  Serial.println("-> GO FORWARD");
   digitalWrite(IN1, HIGH); 
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, HIGH);
@@ -205,47 +157,23 @@ void avanti(int sx, int dx) {
   analogWrite(ENB, dx);
 }
 
-void indietro(int sx, int dx) {
-  Serial.println("-> INDIETRO");
+void goBackward(int sx, int dx) {
+  Serial.println("-> GO BACKWARD");
   digitalWrite(IN1, LOW); 
   digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
-
-  analogWrite(ENA, sx);
-  analogWrite(ENB, dx);
-}
-
-void ferma() {
-  Serial.println("-> STOP");
-  analogWrite(ENA, 0);
-  analogWrite(ENB, 0);
-}
-void ruotaDestra(int sx, int dx) {
-  Serial.println("-> RUOTA SUL POSTO DESTRA");
-  // Right side go back
-  digitalWrite(IN1, LOW); 
-  digitalWrite(IN2, HIGH);
-  // Left side go forward
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-
-  analogWrite(ENA, dx); 
-  analogWrite(ENB, sx);
-}
-
-void ruotaSinistra(int sx, int dx) {
-  Serial.println("-> RUOTA SUL POSTO SINISTRA");
-  // Right side go forward
-  digitalWrite(IN1, HIGH); 
-  digitalWrite(IN2, LOW);
-  // Left side go back
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, HIGH);
 
   analogWrite(ENA, dx);
   analogWrite(ENB, sx);
 }
+
+void stop() {
+  Serial.println("-> STOP");
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+}
+
 
 
 

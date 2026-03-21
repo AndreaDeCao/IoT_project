@@ -3,46 +3,46 @@
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE // In IC2dev.h in the row riga 61 #define I2CDEV_IMPLEMENTATION       I2CDEV_ARDUINO_WIRE
     #include "Wire.h"                     // Include I2C comunication library
 #endif
-#include <nRF24L01.h>                     // Library used for the coomunication between the microcontroller and NRF24
-#include <RF24.h>                         // Libreria principale per la gestione della radio RF24
-#include "I2Cdev.h"                       // Libreria di supporto per protocollo I2C
+#include <nRF24L01.h>                     // Library used for the communication between the microcontroller and NRF24
+#include <RF24.h>                         // Manin Library for interact with the NRF RADIO
+#include "I2Cdev.h"                       // Support Library for I2C communication
 
 RF24 radio(7, 8);                         // Creation for an object radio setting i pin CE=7 e CSN=8 used for the SPI connetion (you can chose every pin)
 bool dmpReady = false;                    // Flag to verify if the MPU is correctely configured
 
-const byte address[6] = "RXSTE";          // Unique adress used for communication between NRF24 na d Arduino
-struct DataPacket {                       // Structure that contain x=roll,y=pitch and z=yaw
+const byte address[6] = "TXSTE";          // Unique adress used for communication between NRF24 radio and Arduino
+struct DataPacket {                       // Structure that contains x=roll,y=pitch and z=yaw
   byte x;                                 // Value x axis (Roll) mapped 0-254
   byte y;                                 // Value y axis (Pitch) mappato 0-254
   byte z;                                 // Value z axis (Yaw) mapped 0-254
 };
-DataPacket data;                          // Creation of an instance of structure called 'data'
+DataPacket data;                          // Creation of an instance of the structure called 'data'
 
-uint8_t fifoBuffer[64];               // uint8_t intero a 8 bit: ho 64 celle da 8 bit(1Byte)   // Buffer that contains data that comee from the processor (DMP) inside MPU
-Quaternion q;                             // Variabile for memorizinng rotation data  in quaternion format
-VectorFloat gravity;                      // Variabile pfor memorizing gravity value 
+uint8_t fifoBuffer[64];               // uint8_t intero a 8 bit: i have 64 cels 8 bit(1Byte)  each  // Buffer that contains data that comee from the processor (DMP) inside MPU
+Quaternion q;                             // Variable for memorizinng rotation data  in quaternion format
+VectorFloat gravity;                      // Variable pfor memorizing gravity value 
 float ypr[3];                            // Array that contains final angles in degrees: [Yaw, Pitch, Roll]
-MPU6050 mpu;                              // Creaation of an object mpu in order to interact with the sensor
+MPU6050 mpu;                              // Creation of an object mpu in order to interact with the sensor
 
 void setupMPU(){
   // Inizialization of I2C comunication
   #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE // if row 61 in I2Cdev.h I2CDEV_IMPLEMENTATION is set to I2CDEV_ARDUINO_WIRE enble the bus I2C
       Wire.begin();                       // Enables I2C bus as a master
-      Wire.setClock(400000);              // Imposta la velocità a 400kHz of I2C bus  (Fast Mode) in order to empty the buffer very fast avoiding data loss
+      Wire.setClock(400000);              // Set the  velocity to 400kHz of I2C bus  (Fast Mode) in order to empty the buffer very fast avoiding data loss
   #elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
       Fastwire::setup(400, true);
   #endif
-
+  Wire.setWireTimeout(3000, true); // EMI problems 
   mpu.initialize();                       // Inizialization of the MPU sensor
   int devStatus = mpu.dmpInitialize();    // Inizialization of the  Digital Motion Processor (DMP) 
   // If the inizialization is good  dev status is set to 0 by mpu.dmpInitialize()
 
   if (devStatus == 0)                    
   {
-      mpu.CalibrateAccel(6);              // Calibration of  l'accelerometer (6 cicle of calibration to get the perfect zero condiotion )
-      mpu.CalibrateGyro(6);               // Calibration of gYROSCOPE (6 cicle of calibration to get the perfect zero condiotion)
+      mpu.CalibrateAccel(6);              // Calibration of  the aaccelerometer (6 cicle of calibration to get the perfect zero condiotion )
+      mpu.CalibrateGyro(6);               // Calibration of gYROSCOPE (6 cicle of calibration to get the perfect zero condition)
       mpu.setDMPEnabled(true);            // Enable DMP process to acquire and process data
-      dmpReady = true;                    // Set flag = TRUE: MPU i ready to acquire data
+      dmpReady = true;                    // Set flag = TRUE: MPU is ready to acquire data
   }
 }
 
@@ -55,7 +55,7 @@ void setup() {
     while (1);                          
   }
   
-  radio.setChannel(108);                  // Imposta la frequenza radio sul canale 108 (fuori banda WiFi standard)
+  radio.setChannel(108);                  // Set the operating frequnency of the to channel 108 (fuori banda WiFi standard)
   radio.setDataRate(RF24_250KBPS);        // Velocity of  transmission low to increase stability and the distance TX-RX
   radio.setPALevel(RF24_PA_MIN);      
   radio.setRetries(5, 15);                // Try to send 15 times a packet [roll,pitch, yaw] for  5*250 microsecondi (250 us) per understand if  se the packet is sent to RX 
@@ -95,71 +95,67 @@ void loop() {
     // Mapping (-50/+50) in a range 0-254 that occupy onlu 1 byte (small packet transmissio is faster )
     data.x = map(xAxisValue, -50, 50, 0, 254); 
     data.y = map(yAxisValue, -50, 50, 0, 254);
-    data.z = map(zAxisValue, -50, 50, 0, 254);    
+    data.z = map(zAxisValue, -50, 50, 0, 254);  
+    mpu.resetFIFO();  // aggunto ora 
   }
 
   // Invia la struttura 'data' via radio e salva l'esito (true/false) in 'ok'
   bool ok = radio.write(&data, sizeof(data));
 
-  // Stampa i valori correnti sulla porta seriale per il monitoraggio
+// Serial debug
   Serial.print("X = "); Serial.print(data.x);
   Serial.print(" | Y = "); Serial.print(data.y);
   Serial.print(" | Z = "); Serial.println(data.z);
-  /////
+
   if(data.y<75){
     if (data.x < 75) {
-      // processCarMovement(FORWARD_LEFT);
-      Serial.println("avanti sinistra");
+      Serial.println(" GO FORWARD LEFT");
     } 
     else if (data.x > 175) {
-      // processCarMovement(FORWARD_RIGHT);
-      Serial.println("avanti destra");
+      Serial.println(" GO FORWARD RIGHT");
     }
     else {
     
-      // Se Y è < 75 ma X non è né a destra né a sinistra, per forza è in mezzo!
-      // processCarMovement(FORWARD);
-      Serial.println("solo avanti");
+      Serial.println("GO FORWARD");
     }
      
 
   }
-  /////
+
   else if (data.y > 175)  // indietro
   {
     if (data.x < 75) {
 
-      Serial.println("indietro sinistra");
+      Serial.println(" GO BACKWARDS LEFT");
     } 
     else if (data.x > 175) {
-      Serial.println("indietro destra");
+      Serial.println(" GO BACKWARDS RIGHT");
     } 
     else {
-      Serial.println("solo indietro");
+      Serial.println(" GO ONLY BACKWARDS");
     }
   }
-  // rotation on xy plane
   else if (data.z > 175)
   {
-      Serial.println("ruota a destra da fermo");
+      //ruotaDestra(sx, dx);  extra implementation
+      Serial.println("STOP");
   }
-  else if (data.z < 75)
-  {
-
-    Serial.println("ruota a sinistra da fermo");
+  else if (data.z < 75){
+    //ruotaSinistra(sx, dx); extra implementation
+        Serial.println("STOP");
 
   }
   else
   {
-    Serial.println("stop");
+        Serial.println("STOP");
     
   }
 
   
   if(ok){
-    Serial.println("inviato comando di guida"); // Messaggio se l'invio è riuscito
+    Serial.println("DRIVING CONTROL SENT"); // data sent to RX correctely ACK received
   }
   else{
-    Serial.println("errore di comunicazione");   // Messaggio se il ricevitore non ha confermato la ricezione
+    Serial.println("COMMUNICATION ERROR");   // transmission error ACK not received yet
   }
 }
