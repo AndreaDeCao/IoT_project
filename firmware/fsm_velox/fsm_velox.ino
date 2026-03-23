@@ -3,7 +3,9 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>   //screen library
 #include "velox.h"
-
+#include <ArduinoJson.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET    -1  // Non usato su ESP32
@@ -17,6 +19,8 @@ volatile unsigned long tempo1;
 volatile unsigned long tempo2;
 volatile bool passaggio1=true; // ir barrier 1 on  (no car detected yet)
 volatile bool passaggio2=true; // ir barrier 2 on (no car detected yet)
+volatile jsonDocument doc;
+const DATA_URL = "http://192.168.4.1/data"; //temporary http address !!!!!!!
 
 #define IR_SENSOR1 18
 #define IR_SENSOR2 19
@@ -124,12 +128,17 @@ void fn_BAR2() {
     delay(1000);
    
     current_state = COMPUTATION; // Torna allo stato iniziale
-
-
 }
 
 // function tha compute the velocity of the car and handle the eventually amount of the bill in case of excess of velocity
-
+void send_RESULT(float velocita){
+  //creating payload
+  String payload = "{\n\"velocità\": " + String(velocita12, 2) + "\n}" 
+  int httpCode = http.POST(payload);
+  Serial.printf("HTTP code: %d\n", httpCode);
+  http.end();
+   
+}
 void fn_RESULT() {
     noInterrupts(); // stop interrupts in order to collect samples of tempo1 and tempo 2 (without thi line tempo1 and tempo 2 can be overwrited and we measure a wrong sample)
     unsigned long t1 = tempo1;
@@ -175,10 +184,16 @@ void fn_RESULT() {
     passaggio1=true;
     passaggio2=true;
     current_state = WAIT; // go back to the first state: WAIT
+    send_RESULT(velocita12);
+  
 }
 
 void setup() {
   Serial.begin(9600);
+  HTTPClient http;
+  http.begin(DATA_URL);
+  http.addHeader("Content-Type", "application/json");
+
     //Display initialization
   if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println("OLED non trovato!");
@@ -195,9 +210,6 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(IR_SENSOR1 ), ISR_SENSOR1, FALLING); // FALLING TRANSIZIONE 1->0 LOGICO
   attachInterrupt(digitalPinToInterrupt(IR_SENSOR2 ), ISR_SENSOR2, FALLING);
   
-  
-
-
   display.clearDisplay();
   display.setTextSize(2);
   display.setTextColor(SSD1306_WHITE);
