@@ -72,13 +72,16 @@ This is how to build and run the project
 - Access at `http://192.168.1.4` from the browser.
 
 ### 3. Firmware Arduino (for the car)
-- Open `firmware/arduino_car/Progetto_RX_TX/nRF24L01_RX/nRF24L01_TX.ino`.
-- Connect the board Arduino nano to your PC, compile the code and upload it on the board.
+#### Receiver configuration and how to burn and run it
+- Put to **off state** the switch of the battery to avoid unusual power consumption.
 - Open `firmware/arduino_car/Progetto_RX_TX/nRF24L01_RX/nRF24L01_RX.ino`.
-- Put to off state the switch of the battery to avoid unusual power consumption.
-- Connect your Arduino uno R4 WIFI to your PC, compile the code and upload it on the board.
-- Put the mpu on a plane surface in order to calibrate the mpu correctely and open the serial monitor.
-- When you see on serial monitor the message "Setup completato!" means that you have done a good wiring and now you can put to on state the switch of the battery to run the system.
+- Connect your **Arduino uno R4 WIFI** to your PC, compile the code and upload it on the board.
+#### Transmitter configuration and how to burn and run it
+- Open `firmware/arduino_car/Progetto_RX_TX/nRF24L01_RX/nRF24L01_TX.ino`.
+- Connect the board **Arduino nano** to your PC, compile the code and upload it on the board.
+- Put the mpu on a **plane surface** in order to calibrate the mpu correctly and open the serial monitor.
+- When you see on the serial monitor the message **"Setup completato!"**, means that you have done a good wiring and now you can put to on state the switch of the battery to run the system.
+- Put to **on state** the switch of the battery of the car and enjoy with your project.
 
 ##  Links
 - PowerPoint presentation:
