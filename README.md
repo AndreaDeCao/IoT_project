@@ -81,7 +81,11 @@ This is how to build and run the project
 - Connect the board **Arduino nano** to your PC, compile the code and upload it on the board.
 - Put the mpu on a **plane surface** in order to calibrate the mpu correctly and open the serial monitor.
 - When you see on the serial monitor the message **"Setup completato!"**, means that you have done a good wiring and now you can put to on state the switch of the battery to run the system.
-- Put to **on state** the switch of the battery of the car and enjoy with your project.
+- Put to **on state** the switch of the car battery and enjoy with your project.
+#### MPU GESTURES CONTROL
+- To drive your car sees the demo on youtube that explains all the gestures necessary to drive it.
+- A cartesian visualization of the gestures is shown at `images/Mpu_gestures_cartesian_visualization.pdf`
+
 
 ##  Links
 - PowerPoint presentation:
