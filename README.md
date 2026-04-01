@@ -48,10 +48,9 @@ Our project consists of a small remote‑controlled rover that uses a gyroscope 
 ~~~
 - `docs/` contains the web page and supporting scripts used for the project presentation.
 - `firmware/` contains all embedded software sources.
-- `arduino_car/` contains car tests
+- `arduino_car/` contains the directory `Progetto_RX_TX` necessary to burn and run the transmitter and the receiver code
 - `esp32/` includes the ESP32 firmware, web server files, and the main sketch.
 - `fsm_velox/` contains the Velox state machine firmware and the code for sending data to the web server.
-- `progettoRX_TX_con_NRF04_TX_RX_RF/` ??
 - `TEST_FILE/` includes isolated tests for motors, sensors etc...
 - `hardware/` contains schematics.
 - `images/` stores pictures used in documentation.
@@ -73,7 +72,13 @@ This is how to build and run the project
 - Access at `http://192.168.1.4` from the browser.
 
 ### 3. Firmware Arduino (for the car)
-x ste
+- Open `firmware/arduino_car/Progetto_RX_TX/nRF24L01_RX/nRF24L01_TX.ino`.
+- Connect the board Arduino nano to your PC, compile the code and upload it on the board.
+- Open `firmware/arduino_car/Progetto_RX_TX/nRF24L01_RX/nRF24L01_RX.ino`.
+- Put to off state the switch of the battery to avoid unusual power consumption.
+- Connect your Arduino uno R4 WIFI to your PC, compile the code and upload it on the board.
+- Put the mpu on a plane surface in order to calibrate the mpu correctely and open the serial monitor.
+- When you see on serial monitor the message "Setup completato!" means that you have done a good wiring and now you can put to on state the switch of the battery to run the system.
 
 ##  Links
 - PowerPoint presentation:
