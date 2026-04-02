@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IoT Speed Camera Dashboard</title>
+
+  <!-- Tailwind CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="min-h-screen flex flex-col bg-gray-100">
+
+  <!-- MAIN -->
+  <main class="flex-grow flex flex-col items-center justify-center px-4">
+
+    <h1 class="text-3xl md:text-4xl font-bold mb-8 text-center">
+      IoT Speed Camera Dashboard
+    </h1>
+    <span class="text-gray-600 mb-6 text-center">
+      Real-time speed and signal status from the ESP32 device
+    </span>
+    <div class="w-full max-w-md space-y-4">
+
+      <!-- Speed Card -->
+      <div class="bg-white shadow-lg rounded-2xl p-6 text-center">
+        <h2 class="text-lg font-semibold mb-2">Vehicle Speed</h2>
+        <p id="speed" class="text-3xl font-bold text-blue-600">-- m/s</p>
+      </div>
+
+      <!-- LED Status Card -->
+      <div class="bg-white shadow-lg rounded-2xl p-6 flex items-center justify-between">
+        <h2 class="text-lg font-semibold">Signal LED</h2>
+        <span id="ledStatus" class="w-6 h-6 rounded-full bg-red-500"></span>
+      </div>
+
+    </div>
+
+    <!-- Links -->
+    <section class="mt-10 text-center">
+      <h2 class="text-xl font-semibold mb-4">Links</h2>
+      <a href="../../index.html"
+         class="bg-gray-700 text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition">
+        Homepage
+      </a>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-blue-700 text-white mt-12 py-6 text-center">
+    <p>© 2025 Embedded Software and IoT Project</p>
+    <p class="text-sm mt-1">Developed by Group_14</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
