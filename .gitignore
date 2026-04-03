@@ -1,3 +1,4 @@
+# Ignore files that are not relevant to the project
 *.zip
 *.txt
 *.vscode
@@ -5,3 +6,8 @@
 
 # Ignore node_modules
 node_modules/
+# Ignore log files
+logs/
+*.log
+# Ignore environment variable files
+.env 
