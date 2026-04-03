@@ -1,18 +1,30 @@
 // URL dell'ESP32 per i dati JSON ESEMPIO
-const DATA_URL = "http://192.168.4.1/data"; // sostituire con l'IP reale!!!!!!!!!!!!!!!!!!!!!!1
+// const DATA_URL = "http://192.168.4.1/data"; // sostituire con l'IP reale!!!!!!!!!!!!!!!!!!!!!!1
+
+// const { existsSync } = require("node:fs");
+
+// const DATA_URL = "http://localhost:3000/"; // per test locale
+const DATA_URL = "http://localhost:3000/data";
+
+//PROBLEMA
+//OGNI VOLTA CHE AGGIORNO LA PAGINA OGGIUNGO UN CAMPO UGUALE ALL'ULTIMO, ANCHE SE NON CAMBIA NIENTE
+// updateData(); // chiamata iniziale per aggiornare subito i dati al caricamento della pagina
+
+
+let lastSpeed = null; // Variabile per memorizzare l'ultima velocità
+let lastSensorTriggered = null; // Variabile per memorizzare l'ultimo stato del sensore
+
+// async function updateDashBoard() {
+//   const response = await fetch("/data"); // per test locale, sostituire con DATA_URL per l'ESP32
+//   const data = await response.json();
+
+// }
 
 async function updateData() {
   try {
-    const response = await fetch(DATA_URL);
+    // const response = await fetch(DATA_URL);
+    const response = await fetch("/data"); // per test locale, sostituire con DATA_URL per l'ESP32
     const data = await response.json();
-    const file = new File()
-
-    // Aggiorna la velocità
-    // document.getElementById("speed").innerText = data.speed.toFixed(2) + " m/s";
-
-
-    // Aggiorna lo stato LED 
-    const led = document.getElementById("ledStatus");
 
     // Aggiorna lo stato LED con valore ON/OFF e cambia colore
     // if (data.led == "OFF") {    
@@ -28,80 +40,105 @@ async function updateData() {
     // var speed = data.speed; // Supponendo che il sensore invii un campo "speed" in m/s
     // var sensorTriggered = data.sensorTriggered; // Supponendo che il sensore invii un campo booleano "sensorTriggered"
 
-    //se arriva string
     var speed = parseFloat(data.speed); // Converti la stringa in numero
     var sensorTriggered = data.sensorTriggered === "true"; // Converti la stringa in booleano
 
-    // Controlla se la velocità supera i 20 m/s (72 km/h)
-    if (speed > 20) {
-      // Se il sensore è stato attivato, mostra un avviso
-      if (sensorTriggered) {
-        console.log("Velocità eccessiva! Rilevato superamento del limite di ... m/s.");  //da cambiare con un messaggio più specifico
-        document.getElementById("speed").innerText = speed + " m/s";
-        led.classList.remove("bg-green-500");
-        led.classList.add("bg-red-500");
+    // Aggiorna la dashboard solo se cambia qualcosa
+    if (speed !== lastSpeed || sensorTriggered !== lastSensorTriggered) {
 
-        salva(data); // Salva i dati in un file JSON
+      // Aggiorna lo stato LED 
+      const led = document.getElementById("ledStatus");
+
+      // Controlla se la velocità supera i 3 m/s (10.8 km/h)
+      if (speed > 3) {
+        // Se il sensore è stato attivato, mostra un avviso
+        if (sensorTriggered) {
+          console.log("Velocità eccessiva! Rilevato superamento del limite di 3 m/s.");  //da cambiare con un messaggio più specifico
+          led.classList.remove("bg-green-500");
+          led.classList.add("bg-red-500");
+        }else{
+          console.log("ERRORE, MALCONFORMITA' NEI DATI --> " + data.speed + " m/s, " + data.sensorTriggered);
+          led.classList.remove("bg-green-500", "bg-red-500");
+          led.classList.add("bg-gray-500");
+        }
       }else{
-        console.log("ERRORE, MALCONFORMITà NEI DATI + " + data.speed + ", " + data.sensorTriggered);
-        document.getElementById("speed").innerText = speed + " m/s";
-        led.classList.remove("bg-green-500");
-        led.classList.remove("bg-red-500");
-        led.classList.add("bg-gray-500");
-
-        salva(data); // Salva i dati in un file JSON  
+        if(!sensorTriggered){
+          console.log("Velocità normale: " + speed + " m/s, sensore non attivato.");
+          led.classList.remove("bg-green-500", "bg-red-500");
+          led.classList.add("bg-green-500");
+        }else{
+          console.log("ERRORE, MALCONFORMITA' NEI DATI --> " + data.speed + " m/s, " + data.sensorTriggered);
+          led.classList.remove("bg-green-500", "bg-red-500");
+          led.classList.add("bg-gray-500");
+        }
       }
-    }else{
-        console.log("Velocità normale: " + speed + " m/s.");
-        document.getElementById("speed").innerText = speed + " m/s";
-        led.classList.remove("bg-red-500");
-        led.classList.add("bg-green-500");
 
-        salva(data); // Salva i dati in un file JSON
+      document.getElementById("speed").innerText = speed + " m/s";
+
+      // Aggiorna le variabili per la prossima verifica
+      lastSpeed = speed;
+      lastSensorTriggered = sensorTriggered;
+    } 
+
+    // i dati vengono salvati solo se la velocità è presente e il sensore è attivo, per evitare di salvare dati non significativi o malformati
+    if(speed && sensorTriggered == null){
+      await fetch("/salva", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          speed,
+          sensorTriggered,
+          timestamp: new Date().toISOString()
+        })
+      });
     }
+    // updateData(); // Richiama la funzione per aggiornare i dati in tempo reale
     
+
+    document.getElementById("speed").innerText = speed + " m/s";
+
+    speed = sensorTriggered = null; // Resetta le variabili dopo l'elaborazione
+
+    // await loadLog();
 
   } catch (error) {
     console.error("Error fetching data:", error);
   }
 }
 
-// Aggiorna ogni secondo
-setInterval(updateData, 1000);
-// updateData(); // Chiamata iniziale //non seve a nulla in teoria da testare 
+async function loadLog() {
+  try {
+    const res = await fetch("/dati");
+    const data = await res.json();
 
+    const table = document.getElementById("logTable");
+    table.innerHTML = "";
 
-//==============================TEMP --> PASSARE A NODEJS===============================
+    // Inverti l'ordine dei dati per mostrare prima i più recenti
+    data.reverse();
 
-//dato 1
-    //crea file se non esiste 
-    //metti dato  
-    //elaborazione
+    data.forEach(entry => {
+      const row = document.createElement("tr");
 
+      row.innerHTML = `
+        <td class="p-2">${entry.id}</td>
+        <td class="p-2">${entry.speed}</td>
+        <td class="p-2">${entry.sensorTriggered}</td>
+        <td class="p-2 text-xs">${new Date(entry.timestamp).toLocaleTimeString()}</td>
+      `;
 
-/**
- * funzione per salvare i dati in un file JSON scaricabile 
- * @param {*} dati json da salvare in un file scaricabile
- */
-function salva(dati) {
-  const blob = new Blob(
-    [JSON.stringify(dati, null, 2)],
-    { type: "application/json" }
-  );
+      table.appendChild(row);
+    });
 
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "dati.json";
-  a.click();
+  } catch (err) {
+    console.error("Errore caricamento log:", err);
+  }
 }
 
+// Aggiorna ogni secondo
+setInterval(updateData, 1000);
 
-
-//==============================TEMP NODEJS===============================
-fetch("/salva", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify(dati) // dati da salvare, da definire
-});
+// Carica il log ogni 2 secondi
+setInterval(loadLog, 2000);
