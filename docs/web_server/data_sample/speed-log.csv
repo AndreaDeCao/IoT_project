@@ -12,3 +12,4 @@ Test-Case-ID,Speed,Sensor-Triggered,Timestamp
 11,6.7,true,2024-06-01T12:10:00Z
 12,6.7,false,2024-06-01T12:10:00Z
 13,0.4,false,2024-06-01T12:08:00Z
+14,6.7,false,2024-06-01T12:10:00Z

@@ -6,11 +6,6 @@
 // const DATA_URL = "http://localhost:3000/"; // per test locale
 const DATA_URL = "http://localhost:3000/data";
 
-//PROBLEMA
-//OGNI VOLTA CHE AGGIORNO LA PAGINA OGGIUNGO UN CAMPO UGUALE ALL'ULTIMO, ANCHE SE NON CAMBIA NIENTE
-// updateData(); // chiamata iniziale per aggiornare subito i dati al caricamento della pagina
-
-
 let lastSpeed = null; // Variabile per memorizzare l'ultima velocità
 let lastSensorTriggered = null; // Variabile per memorizzare l'ultimo stato del sensore
 
@@ -93,9 +88,7 @@ async function updateData() {
           timestamp: new Date().toISOString()
         })
       });
-    }
-    // updateData(); // Richiama la funzione per aggiornare i dati in tempo reale
-    
+    }    
 
     document.getElementById("speed").innerText = speed + " m/s";
 

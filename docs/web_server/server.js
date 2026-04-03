@@ -11,14 +11,14 @@ const PORT = 3000;
 let currentTestCaseId = 0; // Contatore per i test case
 
 // Crea la cartella "data_sample" se non esiste
-const dirPath = path.join(__dirname, '../data_sample');
+const dirPath = path.join(__dirname, 'data_sample');
 
 if (!fs.existsSync(dirPath)) {
   fs.mkdirSync(dirPath);
 }
 
 // Percorso del file CSV
-const filePath = path.join(__dirname, '../data_sample/speed-log.csv'); // Percorso del file CSV
+const filePath = path.join(dirPath, 'speed-log.csv'); // Percorso del file CSV
 
 // per leggere JSON
 app.use(express.json()); // Middleware per il parsing del JSON
