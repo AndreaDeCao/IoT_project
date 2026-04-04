@@ -6,8 +6,10 @@
 
 # Ignore node_modules
 node_modules/
+
 # Ignore log files
 logs/
 *.log
+
 # Ignore environment variable files
 .env 

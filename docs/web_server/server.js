@@ -9,6 +9,7 @@ const app = express();
 const PORT = 3000;
 
 let currentTestCaseId = 0; // Contatore per i test case
+let timestamp = null; 
 
 // Crea la cartella "data_sample" se non esiste
 const dirPath = path.join(__dirname, 'data_sample');
@@ -63,7 +64,8 @@ app.use(express.static('public')); // Serve i file statici dalla cartella "publi
  * Endpoint per salvare i dati nel file CSV
  */
 app.post('/salva', (req, res) => {
-  const { speed, sensorTriggered, timestamp } = req.body;
+  // const { speed, sensorTriggered, timestamp } = req.body;
+  const { speed, sensorTriggered} = req.body;
 
   // Leggi l'ultima riga del file CSV
   let lastRow = null;
@@ -74,6 +76,8 @@ app.post('/salva', (req, res) => {
       lastRow = lines[lines.length - 1].split(',');
     }
   }
+  
+  timestamp = new Date().toISOString(); // Aggiorna il timestamp al momento della ricezione dei dati
 
   // Controllo duplicato: se ultima riga è identica a questa, non salvare
   if (lastRow &&

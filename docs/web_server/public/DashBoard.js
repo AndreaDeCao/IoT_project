@@ -44,11 +44,13 @@ async function updateData() {
       // Aggiorna lo stato LED 
       const led = document.getElementById("ledStatus");
 
+      var limit = 3;
+
       // Controlla se la velocità supera i 3 m/s (10.8 km/h)
-      if (speed > 3) {
+      if (speed > limit) {
         // Se il sensore è stato attivato, mostra un avviso
         if (sensorTriggered) {
-          console.log("Velocità eccessiva! Rilevato superamento del limite di 3 m/s.");  //da cambiare con un messaggio più specifico
+          console.log("Velocità eccessiva! Rilevato superamento del limite di " + (speed - limit) + " m/s. ");  //da cambiare con un messaggio più specifico
           led.classList.remove("bg-green-500");
           led.classList.add("bg-red-500");
         }else{
