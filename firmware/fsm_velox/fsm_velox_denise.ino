@@ -24,11 +24,11 @@ volatile bool passaggio2=true; // ir barrier 2 on (no car detected yet)
 
 WebServer server(80);
 // HTTPClient http;
-const char* ssid = "test_test";
-const char* password = "";
-// const char* ssid = "iPhone di Denise";
-// const char* password = "qwerty111";
-// const char* DATA_URL = "http://192.168.4.1/data"; //temporary http address !!!!!!!
+// const char* ssid = "test_test";
+// const char* password = "";
+const char* ssid = "iPhone di Denise";
+const char* password = "qwerty111";
+const char* DATA_URL = "http://Iot_gruppo-14/salva"; //temporary http address !!!!!!!
 
 float currentSpeed = 0.0;
 bool sensorTriggered = false;
@@ -202,6 +202,7 @@ void fn_RESULT() {
     passaggio1=true;
     passaggio2=true;
     current_state = WAIT; // go back to the first state: WAIT
+    
     // send_RESULT(currentSpeed);
 }
 
