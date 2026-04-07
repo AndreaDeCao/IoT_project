@@ -6,10 +6,9 @@ Our project consists of a small remote‑controlled rover that uses a gyroscope 
 ## Table of contents
 * [Hardware and software reuirements](#hardware-and-software-requirements)
 * [Project layout](#project-layout)
-* [How to build, burn and run the project](#build-proj)
 * [User guide](#user-guide)
 * [Links](#links)
-* [Team members](#team-members)
+* [Team members](#team-members-and-contributions)
 
 ## Hardware and software requirements
 
@@ -22,7 +21,7 @@ Our project consists of a small remote‑controlled rover that uses a gyroscope 
 - Breadboard and jumper wires
 - Power source(s)
 
-![Porva immagine](./images/schematic_car.png)
+![Prova immagine](./images/schematic_car.png)
 
 ### Software requirements
 - Arduino IDE
@@ -55,8 +54,6 @@ Our project consists of a small remote‑controlled rover that uses a gyroscope 
 - `hardware/` contains schematics.
 - `images/` stores pictures used in documentation.
 - `report/` contains the final report (and related material).
-
-
 
 ## User guide
 This is how to build and run the project

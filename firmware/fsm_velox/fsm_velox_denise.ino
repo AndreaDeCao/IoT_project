@@ -5,8 +5,8 @@
 #include "velox.h"
 #include <ArduinoJson.h>
 #include <WiFi.h>
-// #include <HTTPClient.h>
-#include <WebServer.h>
+#include <HTTPClient.h>
+// #include <WebServer.h>
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -22,8 +22,8 @@ volatile unsigned long tempo2;
 volatile bool passaggio1=true; // ir barrier 1 on  (no car detected yet)
 volatile bool passaggio2=true; // ir barrier 2 on (no car detected yet)
 
-WebServer server(80);
-// HTTPClient http;
+// WebServer server(80);
+HTTPClient http;
 // const char* ssid = "test_test";
 // const char* password = "";
 const char* ssid = "iPhone di Denise";
@@ -55,7 +55,6 @@ StateMachine_t fsm[] = {
     {IR2, fn_BAR2},
     {COMPUTATION, fn_RESULT}
 };
-
 
 State_v current_state = WAIT;
 
@@ -135,26 +134,40 @@ void fn_BAR2() {
 }
 
 // function tha compute the velocity of the car and handle the eventually amount of the bill in case of excess of velocity
-/* void send_RESULT(float velocita){
-    if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("WiFi non connesso!");
-        return;
-    }
+void send_RESULT(float currentSpeed, bool sensorTriggered){
 
     http.begin(DATA_URL);  // ← ri-begin ogni volta
     http.addHeader("Content-Type", "application/json");
 
     //creating payload
     String payload = "{";
-        payload += "\"velocita\": ";
-        payload += String(velocita, 2);
-        payload += "}";
-    // String payload = "{\"velocita\":" + String(velocita, 2) + "}";
+    payload += "\"speed\":" + String(currentSpeed, 2) + ",";
+    payload += "\"triggered\":" + String(sensorTriggered ? "true" : "false");
+    payload += "}";
+
+    // altro modo (meglio o peggio?)
+    /*StaticJsonDocument<128> doc;
+    doc["speed"] = currentSpeed;
+    doc["triggered"] = sensorTriggered;
+
+    String payload;
+    serializeJson(doc, payload);
+    */
+
+    Serial.println(payload);
     
     int httpCode = http.POST(payload);
     Serial.printf("HTTP code: %d\n", httpCode);
+
+    if (httpCode > 0) {
+        String response = http.getString();
+        Serial.println(response);
+    } else {
+        Serial.println("POST failed");
+    }
+    
     http.end();
-} */
+}
 
 void fn_RESULT() {
     noInterrupts(); // stop interrupts in order to collect samples of tempo1 and tempo 2 (without thi line tempo1 and tempo 2 can be overwrited and we measure a wrong sample)
@@ -174,7 +187,7 @@ void fn_RESULT() {
     Serial.println(currentSpeed , 2);
 
     // Se velocità supera soglia, trasmetti con IR3
-    currentSpeed =51;
+    // currentSpeed = 51;
     if (sensorTriggered) {
         RedOn();   
         Serial.println("IR3 inviato: velocita oltre soglia!");
@@ -195,6 +208,9 @@ void fn_RESULT() {
       delay(1000);
       //digitalWrite(LED_DEBUG[3],LOW);
     }
+    if(connectWifi) {
+      send_RESULT(currentSpeed, sensorTriggered);
+    }
 
     // reset parameter for a new measuremnt
     tempo1 = 0;
@@ -202,11 +218,10 @@ void fn_RESULT() {
     passaggio1=true;
     passaggio2=true;
     current_state = WAIT; // go back to the first state: WAIT
-    
-    // send_RESULT(currentSpeed);
 }
 
-void handleData() {
+/* void handleData() {
+
     server.sendHeader("Access-Control", "*");
     String json = "{";
     json += "\"speed\":" + String(currentSpeed, 2) + ",";
@@ -225,9 +240,25 @@ void handleData() {
     //
     // server.sendHeader("Access-Control-Allow-Origin", "*");
     // server.send(200, "application/json", response);
-}
+} */
 
-void handleRoot() {
+/*void handleSave() {
+  StaticJsonDocument<128> doc;
+
+  String body = server.arg("plain");;
+  float speed = doc["speed"];
+  bool triggered = doc["triggered"];
+
+  Serial.println("JSON received:");
+  Serial.println(body);
+  Serial.println("speed = " + speed);
+  Serial.println("triggered = " + triggered);
+
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.send(200, "application/json", response);
+}*/
+
+/* void handleRoot() {
     server.send(200, "text/html", 
     "<h1>Speed Camera</h1><p>Speed: <span id='speed'>0</span> km/h</p>");
 
@@ -239,19 +270,17 @@ void handleRoot() {
     "document.getElementById('speed').textContent=d.speed;"
     "document.getElementById('trig').textContent=d.triggered?'Too fast':'OK';"
     "}),1000);</script>");
-}
+}*/
 
 void setup() {
     Serial.begin(9600);
 
-    WiFi.softAP(ssid, password);   //collegamento a wifi
-    Serial.println("Connecting to AP...");
-    Serial.println("AP IP: " + WiFi.softAPIP().toString());
+    bool wifiConnected = connectWiFi();
 
-    server.on("/data", handleData);
-    server.on("/", handleRoot);
-    server.begin();
-  Serial.println("Server started");
+    // server.on("/salva", HTTP_POST, handleSave);
+    // server.on("/", HTTP_GET, handleRoot);
+    // server.begin();
+    // Serial.println("Server started");
 
     //Display initialization
     if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
@@ -273,8 +302,33 @@ void setup() {
     attachInterrupt(digitalPinToInterrupt(IR_SENSOR2 ), ISR_SENSOR2, FALLING);
 }
 
+bool connectWiFi(unsigned long timeoutMs = 10000) {
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+
+    Serial.print("Connecteing to Wifi...");
+    unsigned long start = millis();
+
+    while (WiFi.status() != WL_CONNECTED && millis() - start < timeoutMs) {
+        Serial.print(".");
+        delay(500);
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.println();
+        Serial.println("connected to WiFi!");
+        Serial.print("IP locale: ");
+        Serial.println(WiFi.localIP());
+        return true;
+    } else {
+        Serial.println();
+        Serial.println("Timeout: WiFi not connected");
+        return false;
+    }
+}
+
 void loop() {
-    server.handleClient();
+    // server.handleClient();
     Serial.println("loop");
     // loop è l'equivalente del  "while(1)"
     if (current_state < NUM_STATES) {
