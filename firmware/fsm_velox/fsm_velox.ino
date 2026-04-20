@@ -26,8 +26,8 @@ volatile bool passaggio2=true; // ir barrier 2 on (no car detected yet)
 HTTPClient http;
 // const char* ssid = "test_test";
 // const char* password = "";
-const char* ssid = "HCM.NTW";
-const char* password = "susamogus";
+const char* ssid = "iPhone di Denise";
+const char* password = "qwerty111";
 const char* DATA_URL = "http://Iot_gruppo-14/salva"; //temporary http address !!!!!!!
 
 float currentSpeed = 0.0;
@@ -60,7 +60,8 @@ State_v current_state = WAIT;
 
 // ISR: handle the interruot the car is detected at the first barrier
 void ISR_SENSOR1() {
-  passaggio1 = false; // macchina passata
+  passaggio1 = true; // macchina passata
+  delay(500);
   Serial.println("ISR 1 triggered!");
 }
 
@@ -80,10 +81,16 @@ void fn_START() {
  // function that sample the instant where car pass through the first IR barrier
 void fn_BAR1() {
   int x = 0;
+  unsigned long start = millis();
   // use this two lines to test the hardware but you will use the value from sensor when we will have it
   //passaggio1=false; // car detected forzato
   //passaggio1=true //stay in the loop (car is not detected yet)
     while (passaggio1) {
+      if(millis() - start > 30000){
+        Serial.println("Timeout barriera 1, skip");
+        current_state =  WAIT;
+        return;
+      }
       display.clearDisplay();
       BlueOn();
       display.drawBitmap(x, 25, wifiSymbol, 32, 32, SSD1306_WHITE);
@@ -169,8 +176,13 @@ void send_RESULT(float currentSpeed, bool sensorTriggered){
     http.end();
 }
 bool connectWiFi(unsigned long timeoutMs = 10000) {
+  if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("WiFi già connesso.");
+        return true;
+  }
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
+
 
     Serial.print("Connecteing to Wifi...");
     unsigned long start = millis();
@@ -306,13 +318,14 @@ void setup() {
     // server.begin();
     // Serial.println("Server started");
 
+    //uso pin 21,22 per comunicazione tra esp e schermo tramite protocollo  I2C
+    Wire.begin(21,22); // SDA, SCL for I2C communiction used in LCD
+
     //Display initialization
     if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
         Serial.println("OLED non trovato!");
         return; // "error initialization SSD1306_SWITCHCAPVCC"
     }
-    //uso pin 21,22 per comunicazione tra esp e schermo tramite protocollo  I2C
-    Wire.begin(21,22); // SDA, SCL for I2C communiction used in LCD
     display.clearDisplay();
     display.setTextSize(2);
     display.setCursor(0, 0);
