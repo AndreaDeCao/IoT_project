@@ -3,6 +3,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 
 
@@ -15,7 +16,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 // ================= WIFI =================
 const char* ssid = "HCM_NTW";
 const char* password = "susamogus";
-const char* DATA_URL = "http://Iot_gruppo-14/salva";
+const char* DATA_URL = "https://iot-project-group-14.onrender.com/salva";
 
 
 // ================= SENSORI =================
@@ -79,25 +80,35 @@ bool connectWiFi() {
   return WiFi.status() == WL_CONNECTED;
 }
 
+
 // ================= SEND DATA =================
 void send_RESULT(float speed, bool triggered) {
+  if (WiFi.status() != WL_CONNECTED) return;
 
-HTTPClient http;
-if (WiFi.status() != WL_CONNECTED) return;
-  http.begin(DATA_URL);
+  WiFiClientSecure client;
+  client.setInsecure();
+
+  HTTPClient http;
+  http.setTimeout(15000);
+  http.begin(client, DATA_URL);
   http.addHeader("Content-Type", "application/json");
+
   String payload = "{";
   payload += "\"speed\":" + String(speed, 2) + ",";
   payload += "\"triggered\":" + String(triggered ? "true" : "false");
   payload += "}";
 
-
+  Serial.println("Invio payload: " + payload);
   int code = http.POST(payload);
 
-
-  Serial.print("HTTP: ");
-  Serial.println(code);
-
+  if (code > 0) {
+    Serial.print("HTTP: ");
+    Serial.println(code);
+    Serial.println(http.getString());
+  } else {
+    Serial.print("POST fallito: ");
+    Serial.println(HTTPClient::errorToString(code));
+  }
 
   http.end();
 }
