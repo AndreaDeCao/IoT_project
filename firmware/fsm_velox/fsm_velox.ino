@@ -3,6 +3,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 
 
@@ -86,28 +87,44 @@ bool connectWiFi() {
   return WiFi.status() == WL_CONNECTED;
 }
 
+
 // ================= SEND DATA =================
 void send_RESULT(float speed, bool triggered) {
+  if (WiFi.status() != WL_CONNECTED) return;
 
+<<<<<<< HEAD
 HTTPClient http;
 if (WiFi.status() != WL_CONNECTED){
   Serial.println("Not connected");
   return;
 }
   http.begin(DATA_URL);
+=======
+  WiFiClientSecure client;
+  client.setInsecure();
+
+  HTTPClient http;
+  http.setTimeout(15000);
+  http.begin(client, DATA_URL);
+>>>>>>> b9b29bdbeaaaea5a2fbe6e093c3e84acced96e33
   http.addHeader("Content-Type", "application/json");
+
   String payload = "{";
   payload += "\"speed\":" + String(speed, 2) + ",";
   payload += "\"sensorTriggered\":" + String(triggered ? "true" : "false");
   payload += "}";
 
-
+  Serial.println("Invio payload: " + payload);
   int code = http.POST(payload);
 
-
-  Serial.print("HTTP: ");
-  Serial.println(code);
-
+  if (code > 0) {
+    Serial.print("HTTP: ");
+    Serial.println(code);
+    Serial.println(http.getString());
+  } else {
+    Serial.print("POST fallito: ");
+    Serial.println(HTTPClient::errorToString(code));
+  }
 
   http.end();
 }
@@ -142,7 +159,6 @@ void fn_IR1() {
   tempo1 = micros();
   Serial.println("BAR1");
 
-
   display.clearDisplay();
   display.setCursor(0,0);
   display.println("BAR1 OK");
@@ -161,10 +177,15 @@ void fn_IR1() {
 
 
 void fn_IR2() {
+<<<<<<< HEAD
   if(!passaggio2) return;
+=======
+  if (!passaggio2) return;
+  
+>>>>>>> b9b29bdbeaaaea5a2fbe6e093c3e84acced96e33
   tempo2 = micros();
   Serial.println("BAR2");
-  passaggio2 = true;
+
   display.clearDisplay();
   display.setCursor(0,0);
   display.println("BAR2 OK");
