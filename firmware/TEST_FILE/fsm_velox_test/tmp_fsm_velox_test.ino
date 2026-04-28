@@ -97,8 +97,8 @@ void setup() {
   Serial.begin(115200);
 
   // I2C
-  I2C_1.begin(I2C1_SDA, I2C_SCL, 100000); //beginning the two IC2 connection on the predeterminated ports
-  I2C_2.begin(I2C2_SDA, I2C_SCL, 100000);
+  I2C_1.begin(I2C1_SDA, I2C1_SCL, 100000); //beginning the two IC2 connection on the predeterminated ports
+  I2C_2.begin(I2C2_SDA, I2C2_SCL, 100000);
 
   // Display
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {

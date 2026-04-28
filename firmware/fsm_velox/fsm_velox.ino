@@ -9,26 +9,31 @@
 // ================= DISPLAY =================
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+// ================= DISPLAY =================
+#define I2C1_SDA 2
+#define I2C2_SDA 18
+#define I2C1_SCL 4
+#define I2C2_SCL 19
 
 
 // ================= WIFI =================
 const char* ssid = "HCM_NTW";
 const char* password = "susamogus";
-const char* DATA_URL = "http://Iot_gruppo-14/salva";
+const char* DATA_URL = "https://iot-project-group-14.onrender.com/salva";
 
 
-// ================= SENSORI =================
-Adafruit_VCNL4010 vcnl;
+// ================= SENSORI + DISPLAY =================
+Adafruit_VCNL4010 BAR1;
+Adafruit_VCNL4010 BAR2;
+TwoWire I2C_1 = TwoWire(0); //IC2 setting for dual connection to the sensors
+TwoWire I2C_2 = TwoWire(1);
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &I2C_1, -1);
 
 
 #define SOGLIA_PROX 2400
 
 
 // ================= IR =================
-#define IR_SENSOR1 18
-#define IR_SENSOR2 19
-
 
 volatile bool passaggio1 = false;
 volatile bool passaggio2 = false;
@@ -54,6 +59,7 @@ typedef enum {
 State current_state = WAIT;
 
 // ================= ISR =================
+/*
 void IRAM_ATTR ISR_SENSOR1() {
   passaggio1 = true;
 }
@@ -61,6 +67,7 @@ void IRAM_ATTR ISR_SENSOR1() {
 void IRAM_ATTR ISR_SENSOR2() {
   passaggio2 = true;
 }
+*/
 
 // ================= WIFI =================
 bool connectWiFi() {
@@ -83,12 +90,15 @@ bool connectWiFi() {
 void send_RESULT(float speed, bool triggered) {
 
 HTTPClient http;
-if (WiFi.status() != WL_CONNECTED) return;
+if (WiFi.status() != WL_CONNECTED){
+  Serial.println("Not connected");
+  return;
+}
   http.begin(DATA_URL);
   http.addHeader("Content-Type", "application/json");
   String payload = "{";
   payload += "\"speed\":" + String(speed, 2) + ",";
-  payload += "\"triggered\":" + String(triggered ? "true" : "false");
+  payload += "\"sensorTriggered\":" + String(triggered ? "true" : "false");
   payload += "}";
 
 
@@ -113,13 +123,13 @@ void fn_WAIT() {
   display.display();
   Serial.println("WAIT STATUS");
 
-  uint16_t prox = vcnl.readProximity();
+  uint16_t prox = BAR1.readProximity();
   Serial.print("Proximity: ");
   Serial.println(prox);
 
 
   if (prox > SOGLIA_PROX) {
-    Serial.println("VCNL Trigger!");
+    Serial.println("BAR1 Trigger!");
     passaggio1 = true;
     current_state = IR1;
   }
@@ -138,13 +148,20 @@ void fn_IR1() {
   display.println("BAR1 OK");
   display.display();
 
-  passaggio2 = false;
-  current_state = IR2;
+  uint16_t prox = BAR2.readProximity();
+  Serial.print("Proximity: ");
+  Serial.println(prox);
+
+  if (prox > SOGLIA_PROX) {
+    Serial.println("VCNL2 Trigger!");
+    passaggio2 = true;
+    current_state = IR2;
+  }
 }
 
 
 void fn_IR2() {
-  delay(500);
+  if(!passaggio2) return;
   tempo2 = micros();
   Serial.println("BAR2");
   passaggio2 = true;
@@ -159,13 +176,13 @@ void fn_IR2() {
 
 void fn_COMPUTATION() {
   Serial.println("COMPUTATION");
-  noInterrupts();
+  //noInterrupts();
   unsigned long t1 = tempo1;
   unsigned long t2 = tempo2;
-  interrupts();
-
+  //interrupts();
 
   float t = (t2 - t1) / 1000000.0;
+  if (t <= 0) return; // exception division by 0
   float speed = distanza12_cm / t;
   bool triggered = speed > sogliaVelocita;
 
@@ -203,24 +220,43 @@ void fn_COMPUTATION() {
 // ================= SETUP =================
 void setup() {
   Serial.begin(115200);
-
-
-  Wire.begin(21,22);
-  Wire.setClock(100000);
-
-
-  if (!vcnl.begin()) {
-    Serial.println("VCNL4010 non trovato!");
-    while (1);
+  delay(1000);
+  /*
+  byte error, address;
+  Serial.println("Scanning I2C_2...");
+  for(address = 1; address < 127; address++) {
+    I2C_2.beginTransmission(address);
+    error = I2C_2.endTransmission();
+    if (error == 0) {
+      Serial.print("Dispositivo trovato all'indirizzo 0x");
+      Serial.println(address, HEX);
+      break;
+    }
   }
+  Wire.setClock(100000);
+  */
+  //I2C communication init
+  I2C_1.begin(I2C1_SDA, I2C1_SCL, 100000); //beginning the two IC2 connection on the predeterminated ports
+  I2C_2.begin(I2C2_SDA, I2C2_SCL, 100000);
 
-
+  Serial.println("Display initialization");
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println("Display non trovato");
-    while (1);
   }
+  display.clearDisplay();
+  display.display();
 
+  Serial.println("Sensor initialization");
+  if (!BAR1.begin(VCNL4010_I2CADDR_DEFAULT, &I2C_1)) {
+    Serial.println("First proximity sensor not detected, please check the cables");
+    while (1);
+  } else if(!BAR2.begin(VCNL4010_I2CADDR_DEFAULT, &I2C_2)) {
+    Serial.println("Second proximity sensor not detected, please check the cables");
+    while(1);
+  }
+  Serial.println("Setup was successfully completed");
 
+  /*
   pinMode(IR_SENSOR1, INPUT_PULLUP);
   pinMode(IR_SENSOR2, INPUT_PULLUP);
 
@@ -228,7 +264,7 @@ void setup() {
   attachInterrupt(IR_SENSOR1, ISR_SENSOR1, FALLING);
   attachInterrupt(IR_SENSOR2, ISR_SENSOR2, FALLING);
 
-
+  */
   connectWiFi();
 
 
