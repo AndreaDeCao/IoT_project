@@ -11,14 +11,14 @@
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 // ================= DISPLAY =================
-#define I2C1_SDA 2
+#define I2C1_SDA 22
 #define I2C2_SDA 18
-#define I2C1_SCL 4
+#define I2C1_SCL 23
 #define I2C2_SCL 19
 
 
 // ================= WIFI =================
-const char* ssid = "HCM_NTW";
+const char* ssid = "HCM.NTW";
 const char* password = "susamogus";
 const char* DATA_URL = "https://iot-project-group-14.onrender.com/salva";
 
@@ -30,6 +30,9 @@ TwoWire I2C_1 = TwoWire(0); //IC2 setting for dual connection to the sensors
 TwoWire I2C_2 = TwoWire(1);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &I2C_1, -1);
 
+// ========= STATUS VARIABLES FOR VCNL SYNC ============
+bool armed1 = false;
+bool armed2 = false;
 
 #define SOGLIA_PROX 2400
 
@@ -69,16 +72,53 @@ void IRAM_ATTR ISR_SENSOR2() {
   passaggio2 = true;
 }
 */
+// ================= WIFI-SCANNING ==============
+void scanWiFi() {
+  Serial.println("Scanning WiFi networks...");
 
-// ================= WIFI =================
+  int n = WiFi.scanNetworks();
+
+  if (n == 0) {
+    Serial.println("Nessuna rete trovata");
+  } else {
+    Serial.print("Reti trovate: ");
+    Serial.println(n);
+
+    for (int i = 0; i < n; i++) {
+      Serial.print(i + 1);
+      Serial.print(": ");
+      Serial.print(WiFi.SSID(i));
+      Serial.print(" (RSSI ");
+      Serial.print(WiFi.RSSI(i));
+      Serial.print(" dBm)");
+
+      if (WiFi.encryptionType(i) == WIFI_AUTH_OPEN)
+        Serial.print(" [OPEN]");
+      else
+        Serial.print(" [PROTECTED]");
+
+      Serial.println();
+    }
+  }
+
+  Serial.println("Scan completata");
+}
+
+// ================= WIFI =======================
 bool connectWiFi() {
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect(true);
+  delay(1000);
+
+  scanWiFi();
+
   WiFi.disconnect(true); 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   unsigned long start = millis();
 
   Serial.print("Connecting");
-  while (WiFi.status() != WL_CONNECTED && millis() - start < 10000) {
+  while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(200);
   }
@@ -92,21 +132,16 @@ bool connectWiFi() {
 void send_RESULT(float speed, bool triggered) {
   if (WiFi.status() != WL_CONNECTED) return;
 
-<<<<<<< HEAD
-HTTPClient http;
-if (WiFi.status() != WL_CONNECTED){
-  Serial.println("Not connected");
-  return;
-}
-  http.begin(DATA_URL);
-=======
+  HTTPClient http;
+  if (WiFi.status() != WL_CONNECTED){
+    Serial.println("Not connected");
+    return;
+  }
   WiFiClientSecure client;
   client.setInsecure();
-
-  HTTPClient http;
   http.setTimeout(15000);
   http.begin(client, DATA_URL);
->>>>>>> b9b29bdbeaaaea5a2fbe6e093c3e84acced96e33
+
   http.addHeader("Content-Type", "application/json");
 
   String payload = "{";
@@ -177,12 +212,8 @@ void fn_IR1() {
 
 
 void fn_IR2() {
-<<<<<<< HEAD
-  if(!passaggio2) return;
-=======
   if (!passaggio2) return;
   
->>>>>>> b9b29bdbeaaaea5a2fbe6e093c3e84acced96e33
   tempo2 = micros();
   Serial.println("BAR2");
 
@@ -275,6 +306,11 @@ void setup() {
     Serial.println("Second proximity sensor not detected, please check the cables");
     while(1);
   }
+  Serial.println("BAR1 test:");
+  Serial.println(BAR1.readProximity());
+
+  Serial.println("BAR2 test:");
+  Serial.println(BAR2.readProximity());
   Serial.println("Setup was successfully completed");
 
   /*
@@ -301,8 +337,5 @@ void loop() {
     case IR2: fn_IR2(); break;
     case COMPUTATION: fn_COMPUTATION(); break;
   }
-
-
-  delay(50); // piccolo respiro CPU
 }
 
