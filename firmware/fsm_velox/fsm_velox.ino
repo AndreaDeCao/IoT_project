@@ -143,7 +143,6 @@ void fn_IR1() {
   tempo1 = micros();
   Serial.println("BAR1");
 
-
   display.clearDisplay();
   display.setCursor(0,0);
   display.println("BAR1 OK");
@@ -155,10 +154,11 @@ void fn_IR1() {
 
 
 void fn_IR2() {
-  delay(500);
+  if (!passaggio2) return;
+  
   tempo2 = micros();
   Serial.println("BAR2");
-  passaggio2 = true;
+
   display.clearDisplay();
   display.setCursor(0,0);
   display.println("BAR2 OK");
