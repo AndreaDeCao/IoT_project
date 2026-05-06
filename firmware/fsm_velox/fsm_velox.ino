@@ -29,7 +29,9 @@ TwoWire I2C_2 = TwoWire(1);
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &I2C_1, -1);
 
 // ================= PARAMETRI =================
-#define SOGLIA_PROX 2500
+#define SOGLIA_PROX 2300
+#define SOGLIA_PROX_1 2300
+#define SOGLIA_PROX_2 2400
 #define TIMEOUT_ATTESA_US 1000000   // NON USATO (disabilitato)
 #define NUM_LETTURE_STABILI 3
 
@@ -120,13 +122,13 @@ void stato_ATTESA_BAR1() {
   Serial.print("BAR1: ");
   Serial.println(prox1);
 
-  if (prox1 > SOGLIA_PROX && isTriggerato(BAR1, I2C_1)) {
+  if (prox1 > SOGLIA_PROX_1 && isTriggerato(BAR1, I2C_1)) {
 
     tempo_bar1_us = micros();
     tempo_inizio_attesa_us = micros();
 
     // 🔥 FIX: aspetta che BAR2 sia libero prima di iniziare
-    while (leggiProximitaRobusta(BAR2, I2C_2) > SOGLIA_PROX) {
+    while (leggiProximitaRobusta(BAR2, I2C_2) > SOGLIA_PROX_2) {
       delay(1);
     }
 
@@ -149,7 +151,7 @@ void stato_ATTESA_BAR2() {
   Serial.print("BAR2: ");
   Serial.println(prox2);
 
-  if (prox2 > SOGLIA_PROX && isTriggerato(BAR2, I2C_2)) {
+  if (prox2 > SOGLIA_PROX_2 && isTriggerato(BAR2, I2C_2)) {
 
     unsigned long tempo_bar2_us = micros();
 
@@ -218,6 +220,10 @@ void setup() {
     while (1);
   }
 
+  BAR1.setLEDcurrent(20);
+  BAR2.setLEDcurrent(20);
+  BAR1.setFrequency(VCNL4010_3_90625);
+  BAR2.setFrequency(VCNL4010_3_90625);
   Serial.print("BAR1 test: ");
   Serial.println(BAR1.readProximity());
   Serial.print("BAR2 test: ");
