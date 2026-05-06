@@ -1,0 +1,287 @@
+#include <Wire.h>
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+#include <HTTPClient.h>
+
+
+// ================= DUAL I2C BUS =================
+TwoWire I2C_B = TwoWire(1);
+
+#define SDA_A 21
+#define SCL_A 22
+#define SDA_B 16
+#define SCL_B 17
+
+// ================= VCNL4010 RAW =================
+#define VCNL_ADDR    0x13
+#define REG_CMD      0x80
+#define REG_PROX_H   0x87
+
+void vcnl_init(TwoWire &bus) {
+    bus.beginTransmission(VCNL_ADDR);
+    bus.write(REG_CMD);
+    bus.write(0x20);  // prossimità continua
+    bus.endTransmission();
+}
+
+uint16_t vcnl_readProximity(TwoWire &bus) {
+    bus.beginTransmission(VCNL_ADDR);
+    bus.write(REG_PROX_H);
+    bus.endTransmission(false);  // repeated start, non rilascia il bus
+    bus.requestFrom(VCNL_ADDR, 2);
+    uint8_t high = bus.read();
+    uint8_t low  = bus.read();
+    return ((uint16_t)high << 8) | low;
+}
+
+// ================= WIFI =================
+const char* ssid = "HCM.NTW";
+const char* password = "susamogus";
+const char* DATA_URL = "https://iot-project-group-14.onrender.com/salva";
+
+// ========= STATUS VARIABLES FOR VCNL SYNC ============
+/*bool armed1 = false;
+bool armed2 = false;*/
+volatile bool passaggio1 = false;
+volatile bool passaggio2 = false;
+volatile unsigned long tempo1 = 0;
+volatile unsigned long tempo2 = 0;
+
+// ================= PARAMETRI =================
+float distanza12_cm = 20.0;
+float sogliaVelocita = 50.0;
+#define SOGLIA_PROX 2400
+
+// ================= FSM =================
+typedef enum {
+  WAIT,
+  IR1,
+  IR2,
+  COMPUTATION
+} State;
+
+State current_state = WAIT;
+
+// ================= WIFI-SCANNING ==============
+void scanWiFi() {
+  Serial.println("Scanning WiFi networks...");
+
+  int n = WiFi.scanNetworks();
+
+  if (n == 0) {
+    Serial.println("Nessuna rete trovata");
+  } else {
+    Serial.print("Reti trovate: "); Serial.println(n);
+
+    for (int i = 0; i < n; i++) {
+      Serial.print(i + 1); Serial.print(": ");
+      Serial.print(WiFi.SSID(i));
+      Serial.print(" (RSSI "); Serial.print(WiFi.RSSI(i)); Serial.print(" dBm)");
+
+      Serial.println(WiFi.encryptionType(i) == WIFI_AUTH_OPEN ? " [OPEN]" : " [PROTECTED]");
+
+      Serial.println();
+    }
+  }
+
+  Serial.println("Scan completata");
+}
+
+// ================= WIFI =======================
+bool connectWiFi() {
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("WiFi già connesso.");
+        return true;
+    }
+    WiFi.mode(WIFI_STA);
+    WiFi.disconnect(true);
+    delay(1000);
+
+    scanWiFi();
+
+    WiFi.disconnect(true); 
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+    unsigned long start = millis();
+
+    Serial.print("Connecting");
+    while (WiFi.status() != WL_CONNECTED) {
+        Serial.print(".");
+        delay(200);
+    }
+    Serial.println("\n Successfully Connected!");
+
+    return WiFi.status() == WL_CONNECTED;
+}
+
+
+// ================= SEND DATA =================
+void send_RESULT(float speed, bool triggered) {
+  if (WiFi.status() != WL_CONNECTED) return;
+
+  HTTPClient http;
+  if (WiFi.status() != WL_CONNECTED){
+    Serial.println("Not connected");
+    return;
+  }
+  WiFiClientSecure client;
+  client.setInsecure();
+  http.setTimeout(50000);
+  http.begin(client, DATA_URL);
+
+  http.addHeader("Content-Type", "application/json");
+
+  String payload = "{";
+  payload += "\"speed\":" + String(speed, 2) + ",";
+  payload += "\"sensorTriggered\":" + String(triggered ? "true" : "false");
+  payload += "}";
+
+  Serial.println("Invio payload: " + payload);
+  int code = http.POST(payload);
+
+  if (code > 0) {
+    Serial.print("HTTP: ");
+    Serial.println(code);
+    Serial.println(http.getString());
+  } else {
+    Serial.print("POST fallito: ");
+    Serial.println(HTTPClient::errorToString(code));
+  }
+
+  http.end();
+}
+
+
+// ================= STATI =================
+
+
+void fn_WAIT() {
+  display.clearDisplay();
+  display.setCursor(0,0);
+  display.println("WAIT");
+  display.display();
+  Serial.println("WAIT STATUS");
+
+  uint16_t prox = vcnl_readProximity(Wire);     //BAR1 su bus A
+  Serial.print("Proximity BAR1: ");
+  Serial.println(prox);
+
+  if (prox > SOGLIA_PROX) {
+    Serial.println("BAR1 Trigger!");
+    passaggio1 = true;
+    current_state = IR1;
+  }
+}
+
+
+void fn_IR1() {
+    if (!passaggio1) return;
+
+    tempo1 = micros();
+    Serial.println("BAR1");
+
+    display.clearDisplay();
+    display.setCursor(0,0);
+    display.println("BAR1 OK");
+    display.display();
+
+    uint16_t prox = vcnl_readProximity(I2C_B);  // BAR2 su bus B
+    Serial.print("Proximity BAR2: ");
+    Serial.println(prox);
+
+    if (prox > SOGLIA_PROX) {
+        Serial.println("BAR2 Trigger!");
+        passaggio2 = true;
+        current_state = IR2;
+    }
+}
+
+
+void fn_IR2() {
+    if (!passaggio2) return;
+  
+    tempo2 = micros();
+    Serial.println("BAR2");
+
+    display.clearDisplay();
+    display.setCursor(0,0);
+    display.println("BAR2 OK");
+    display.display();
+
+    current_state = COMPUTATION;
+}
+
+
+void fn_COMPUTATION() {
+    Serial.println("COMPUTATION");
+    unsigned long t1 = tempo1;
+    unsigned long t2 = tempo2;
+
+    float t = (t2 - t1) / 1000000.0;
+    if (t <= 0) {
+        Serial.println("Errore: tempo non valido, reset.");
+        current_state = WAIT;
+        return;
+    }
+    float speed = distanza12_cm / t;
+    bool triggered = speed > sogliaVelocita;
+
+
+    Serial.print("Velocita: ");
+    Serial.println(speed);
+
+
+    display.clearDisplay();
+    display.setCursor(0,0);
+    display.println(triggered ? "OVER SPEED!" : "OK");
+    display.display();
+
+    send_RESULT(speed, triggered);
+
+
+    // reset
+    tempo1 = 0;
+    tempo2 = 0;
+    passaggio1 = false;
+    passaggio2 = false;
+    current_state = WAIT;
+}
+
+
+// ================= SETUP =================
+void setup() {
+    Serial.begin(115200);
+    delay(1000);
+    
+    // I2C bus A: BAR1 + Display
+    Wire.begin(SDA_A, SCL_A);
+    // I2C bus B: BAR2
+    I2C_B.begin(SDA_B, SCL_B);
+
+    Serial.println("Sensor initialization");
+    vcnl_init(Wire);    // BAR1
+    vcnl_init(I2C_B);   // BAR2
+  
+    Serial.println("BAR1 test:");
+    Serial.println(vcnl_readProximity(Wire));
+
+    Serial.println("BAR2 test:");
+    Serial.println(vcnl_readProximity(I2C_B));
+    Serial.println("Setup was successfully completed");
+
+    connectWiFi();
+
+    Serial.println("Sistema pronto");
+}
+
+
+// ================= LOOP =================
+void loop() {
+  switch (current_state) {
+    case WAIT: fn_WAIT(); break;
+    case IR1: fn_IR1(); break;
+    case IR2: fn_IR2(); break;
+    case COMPUTATION: fn_COMPUTATION(); break;
+  }
+}
+
