@@ -37,18 +37,7 @@ extern const unsigned char wifiSymbol[] PROGMEM  = {
   0x00, 0x00, 0x00, 0x00
 };
 
-// define parameters of transmitters
-extern const float distanza12_cm = 10.0; // distance between two transimtters
-extern const float sogliaVelocita = 50.0; // cm/s
-
-const int LED_PIN[] = {14,25, 26, 27};
-
-//define I2C connections ports
-
-const int I2C1_SDA = 21;
-const int I2C2_SDA = 18;
-const int I2C1_SCL = 22;
-const int I2C2_SCL = 19;
+const int LED_PIN[] = {14, 25, 26, 27};
 
 //state func
 void fn_START(void);
