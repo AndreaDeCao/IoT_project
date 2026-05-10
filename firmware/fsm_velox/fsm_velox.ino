@@ -8,6 +8,7 @@
 #include <HTTPClient.h>
 #include <WebServer.h>
 #include <PubSubClient.h>
+#include <Preferences.h>
 
 // ================= VCNL4010 =================
 Adafruit_VCNL4010 BAR1;
@@ -32,20 +33,26 @@ const char* ssid = "HCM.NTW";
 const char* password = "susamogus";
 const char* DATA_URL = "https://iot-project-group-14.onrender.com/salva";
 
+// ================= PARAMETRI =================
+#define SOGLIA_OFFSET 200
+#define LETTURE_CALIBRAZIONE 20
+#define TIMEOUT_ATTESA_MS 3000
+#define N_LETTURE_MEMORIA 5
+#define distanza12_cm 4.0 // distance between two transimtters
+#define sogliaVelocita 2.5 // m/s
+
 // ================= VARIABILI =================
+Preferences prefs;
+float storicoVelocita[N_LETTURE_MEMORIA] = {0};
+const char* PREFS_KEY = "storicov";
 unsigned long tempo1 = 0;
 unsigned long tempo2 = 0;
+unsigned long tempo_inizio_attesa = 0;
 float currentSpeed = 0.0;
 bool overSpeed = false;
+unsigned int SOGLIA_PROX_1 = 0;
+unsigned int SOGLIA_PROX_2 = 0;
 
-// ================= PARAMETRI =================
-#define SOGLIA_PROX 2300
-#define SOGLIA_PROX_1 2300
-#define SOGLIA_PROX_2 2400
-#define NUM_LETTURE_STABILI 3
-
-extern const float distanza12_cm = 4.0; // distance between two transimtters
-extern const float sogliaVelocita = 2.5; // m/s
 
 // ================= FSM =================
 typedef enum {
@@ -134,6 +141,7 @@ bool initWiFi() {
 }
 
 // ================= JSON HANDLING =================
+
 void performPostRequest() {
   if (WiFi.status() != WL_CONNECTED) return;
 
@@ -157,6 +165,63 @@ void performPostRequest() {
   }
 }
 
+// ================= MEMORY SAVING ====================
+
+  void saveHistoryInMemory() {
+    prefs.begin("autovelox", false);  //opening stream in write mode
+    prefs.putBytes(PREFS_KEY, (byte*)&storicoVelocita, sizeof(storicoVelocita));
+    prefs.end();
+    Serial.println("Speed was successfully saved in Flash Memory.");
+  }
+
+  void loadHistoryFromMemory(){
+    prefs.begin("autovelox", true); //opening stream in read mode
+    if (prefs.isKey(PREFS_KEY)) {
+      prefs.getBytes(PREFS_KEY, (byte*)&storicoVelocita, sizeof(storicoVelocita));
+      Serial.println("Speed History was correctly loaded");
+    } else {
+      Serial.println("[!] There wasn't any speed history loaded in memory.");
+    }
+    prefs.end();
+  }
+
+  void addSpeedToMemory(float speed){
+    //speed values shift in the circular array -> least recent value is trashed
+    for (int i = 0; i < N_LETTURE_MEMORIA - 1; i++) {
+      storicoVelocita[i] = storicoVelocita[i + 1];
+    }
+    storicoVelocita[N_LETTURE_MEMORIA - 1] = speed;
+    saveHistoryInMemory();
+  }
+
+  void printSpeedHistory() {
+    bool hit = false;
+    Serial.print("\nSPEED HISTORY => ");
+    for (int i = 0; i < N_LETTURE_MEMORIA; i++) {
+      if (storicoVelocita[i] > 0) {
+        Serial.printf("[%d] %.2f m/s\n", i + 1, storicoVelocita[i]);
+        hit = true;
+      }
+    }
+    if (!hit) Serial.println("no History was found");
+  }
+  
+// ================= VCNL CALIBRATION =================
+
+int calibrateVCNL(){
+  uint32_t proximity1 = 0;
+  uint32_t proximity2 = 0;
+  for (int i = 0; i < LETTURE_CALIBRAZIONE; i++){
+    proximity1 += BAR1.readProximity();
+    proximity2 += BAR2.readProximity();
+    delay(20);
+  }
+
+  SOGLIA_PROX_1 = (uint16_t)(proximity1 / LETTURE_CALIBRAZIONE) + SOGLIA_OFFSET;
+  SOGLIA_PROX_2 = (uint16_t)(proximity2 / LETTURE_CALIBRAZIONE) + SOGLIA_OFFSET;
+
+  Serial.printf("Proximity Threshold have been set -> BAR1: %u, BAR2: %u\n", SOGLIA_PROX_1, SOGLIA_PROX_2);
+}
 // ================= SETUP =================
 
 void setup() {
@@ -195,17 +260,22 @@ void setup() {
   BAR2.setFrequency(VCNL4010_3_90625);
 
   //Serial printing and both VCNL test
-  Serial.println("Sensors have been correctly initialized");
   Serial.print("BAR1 test: ");
   Serial.println(BAR1.readProximity());
   Serial.print("BAR2 test: ");
   Serial.println(BAR2.readProximity());
+  calibrateVCNL();
+  Serial.println("Sensors have been correctly initialized");
 
   // WIFI INITIALIZATION
   scanWiFi();
   initWiFi();
   Serial.println("AUTOVELOX HAS BEEN CORRECTLY INITIALIZED -> LOOP PHASE");
   delay(1000);
+
+  // MEMORY SETUP
+  loadHistoryFromMemory();
+  printSpeedHistory();
 }
 
 // ================= LOOP =================
@@ -227,17 +297,18 @@ void fn_START() {
   display.println("WAIT");
   display.display();
 
-  delay(500);
-
+  delayMicroseconds(500);
   current_state = IR1_STATE;
 }
 
 // ================= PRIMA BARRIERA =================
 void fn_BAR1() {
   Serial.println("Attesa barriera 1");
-  while (BAR1.readProximity() < SOGLIA_PROX_1) {
+  if (BAR1.readProximity() < SOGLIA_PROX_1) {
+    return;
   }
   tempo1 = micros();
+  tempo_inizio_attesa = millis();
   Serial.println("BAR1 triggerata");
   current_state = IR2_STATE;
 }
@@ -245,8 +316,14 @@ void fn_BAR1() {
 // ================= SECONDA BARRIERA =================
 void fn_BAR2() {
   Serial.println("Attesa barriera 2");
-
-  while (BAR2.readProximity() < SOGLIA_PROX_2) {
+  if (BAR2.readProximity() < SOGLIA_PROX_2) {
+    if(millis() - tempo_inizio_attesa > TIMEOUT_ATTESA_MS) {
+      Serial.println("[!] Error, the vehicle was too slow -> returning to WAIT state");
+      delay(1000);
+      current_state = WAIT;
+      tempo1 = 0;
+    }
+    return;
   }
   tempo2 = micros();
   Serial.println("BAR2 triggerata");
@@ -280,7 +357,8 @@ void fn_RESULT() {
   display.print(currentSpeed);
   display.println(" m/s");
   display.display(); 
-
+  //saving speed in memory 
+  addSpeedToMemory(currentSpeed);
   //sending data to the webServer
   performPostRequest();
   // time milestones resetted
