@@ -44,7 +44,7 @@ async function updateData() {
       // Aggiorna lo stato LED 
       const led = document.getElementById("ledStatus");
 
-      var limit = 0.6;  //TODO: cambia per valore multa
+      var limit = 0.75;  //TODO: cambia per valore multa
 
 
 

@@ -39,7 +39,7 @@ const char* DATA_URL = "https://iot-project-group-14.onrender.com/salva";
 #define TIMEOUT_ATTESA_MS 3000
 #define N_LETTURE_MEMORIA 5
 #define distanza12_cm 4.0 // distance between two transimtters
-#define sogliaVelocita 0.6 // m/s
+#define sogliaVelocita 0.75 // m/s
 
 // ================= VARIABILI =================
 Preferences prefs;
