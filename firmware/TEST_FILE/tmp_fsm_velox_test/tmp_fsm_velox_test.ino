@@ -34,12 +34,12 @@ const char* password = "susamogus";
 const char* DATA_URL = "https://iot-project-group-14.onrender.com/salva";
 
 // ================= PARAMETRI =================
-#define SOGLIA_OFFSET 200
+#define SOGLIA_OFFSET 50
 #define LETTURE_CALIBRAZIONE 20
 #define TIMEOUT_ATTESA_MS 3000
 #define N_LETTURE_MEMORIA 5
 #define distanza12_cm 4.0 // distance between two transimtters
-#define sogliaVelocita 2.5 // m/s
+#define sogliaVelocita 0.6 // m/s
 
 // ================= VARIABILI =================
 Preferences prefs;
@@ -196,7 +196,7 @@ void performPostRequest() {
 
   void printSpeedHistory() {
     bool hit = false;
-    Serial.print("\nSPEED HISTORY => ");
+    Serial.println("\nSPEED HISTORY => ");
     for (int i = 0; i < N_LETTURE_MEMORIA; i++) {
       if (storicoVelocita[i] > 0) {
         Serial.printf("[%d] %.2f m/s\n", i + 1, storicoVelocita[i]);
@@ -208,14 +208,14 @@ void performPostRequest() {
   
 // ================= VCNL CALIBRATION =================
 
-int calibrateVCNL(){
+void calibrateVCNL(){
   uint32_t proximity1 = 0;
   uint32_t proximity2 = 0;
   for (int i = 0; i < LETTURE_CALIBRAZIONE; i++){
     proximity1 += BAR1.readProximity();
     proximity2 += BAR2.readProximity();
     delay(20);
-  }
+}
 
   SOGLIA_PROX_1 = (uint16_t)(proximity1 / LETTURE_CALIBRAZIONE) + SOGLIA_OFFSET;
   SOGLIA_PROX_2 = (uint16_t)(proximity2 / LETTURE_CALIBRAZIONE) + SOGLIA_OFFSET;
@@ -298,24 +298,24 @@ void fn_START() {
   display.display();
 
   delayMicroseconds(500);
+  Serial.println("Attesa barriera 1");
   current_state = IR1_STATE;
 }
 
 // ================= PRIMA BARRIERA =================
 void fn_BAR1() {
-  Serial.println("Attesa barriera 1");
   if (BAR1.readProximity() < SOGLIA_PROX_1) {
     return;
   }
   tempo1 = micros();
   tempo_inizio_attesa = millis();
   Serial.println("BAR1 triggerata");
+  Serial.println("Attesa barriera 2");
   current_state = IR2_STATE;
 }
 
 // ================= SECONDA BARRIERA =================
 void fn_BAR2() {
-  Serial.println("Attesa barriera 2");
   if (BAR2.readProximity() < SOGLIA_PROX_2) {
     if(millis() - tempo_inizio_attesa > TIMEOUT_ATTESA_MS) {
       Serial.println("[!] Error, the vehicle was too slow -> returning to WAIT state");

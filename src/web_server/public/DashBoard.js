@@ -44,7 +44,10 @@ async function updateData() {
       // Aggiorna lo stato LED 
       const led = document.getElementById("ledStatus");
 
-      var limit = 3;
+      var limit = 0.6;  //TODO: cambia per valore multa
+
+
+
 
       // Controlla se la velocità supera i 3 m/s (10.8 km/h)
       if (speed > limit) {
