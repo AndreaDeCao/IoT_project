@@ -89,7 +89,8 @@ This is how to build and run the project
 - YouTube video:
 
 ## Team members and contributions
-- Luciani Stefano - 
+- Luciani Stefano - Responsible for the hardware design, component wiring and the development of the control and communication software for RC car.
+Responsible for the  development of the finite state machine of the velox and its hardware design.
 - De Cao Andrea - 
 - Boscardin Denise - 
 - Heenatigala Devmin - 
