@@ -47,7 +47,6 @@ For the speed camera:
 - Breadboard and jumper wires
 - x2 VCNL4010
 
-
 ### Software requirements
 The firmware is built with **Arduino IDE 2.x** (board packages for ESP32, Arduino Uno R4 WiFi and Arduino Nano).  
 Key libraries: **RF24**, **MPU6050**, **I2Cdev**, **IRremote**.
@@ -204,11 +203,11 @@ OUT1, OUT2, OUT3, OUT4 → motor terminals
 
 ## Links
 - Link to the [Web Server](https://iot-project-group-14.onrender.com/)
-- Link to the [YouTube Video]() 
+- Link to the [YouTube Video](https://www.youtube.com/watch?v=iuvEgluySTU) 
 
 ## Team members and contributions
 - Luciani Stefano - Responsible for the hardware design, component wiring and the development of the control and communication software for RC car.
 Responsible for the  development of the finite state machine of the velox and its hardware design.
 - De Cao Andrea - 
-- Boscardin Denise - 
+- Boscardin Denise - Responsible for the speed camera code, 3d printing, readme and video editing.
 - Heenatigala Devmin - 
