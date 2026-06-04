@@ -15,16 +15,6 @@ The measured data is then sent to a web server in JSON format, where it is store
 * [Links](#links)
 * [Team members](#team-members-and-contributions)
 
-
-## Components presentation
-### The car
-![](src\web_server\public\images\car.jpeg)
-### The remote-controller
-![](src\web_server\public\images\controller.jpeg)
-### The speed camera
-![](src\web_server\public\images\velox.jpeg)
-
-
 ## Hardware and software requirements
 
 ### Hardware requirements
