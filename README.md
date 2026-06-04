@@ -102,53 +102,78 @@ OUT1, OUT2, OUT3, OUT4 → motor terminals
 
 ## Project layout
 ~~~
-/iot_project
-├─README.md
-├─firmware/
-|	├─arduino_car/
-|	|	├─nRF24L01_RX/
-|	|	└─nRF24L01_TX/
-|	├─esp32/
-|	|	├─libraries/
-|	|	└─main.ino
-|	├─fsm_velox/
-|	|	├─fsm_velox.ino
-|	|	└─velox.h
-|	├─TEST_FILE/
-├─hardware/
-├─src/web_server
-|	├─data_sample/
-|	|	└─speed-log.csv
-|	├─public/
-|	|	├─images/
-|	|	├─Dashboard.html
-|	|	├─Dashboard.js
-|	|	├─index.html
-|	|	└─script.js
-|	├─package-lock.json
-|	├─package.json
-|	└─server.js
+IoT_project
+├─ firmware
+│  ├─ arduino_car
+│  │  └─ Progetto_RX_TX
+│  │     ├─ nRF24L01_RX
+│  │     │  └─ nRF24L01_RX.ino
+│  │     └─ nRF24L01_TX
+│  │        ├─ helper_3dmath.h
+│  │        ├─ I2Cdev.cpp
+│  │        ├─ I2Cdev.h
+│  │        ├─ library.json
+│  │        ├─ MPU6050.cpp
+│  │        ├─ MPU6050.h
+│  │        ├─ MPU6050_6Axis_MotionApps20.cpp
+│  │        ├─ MPU6050_6Axis_MotionApps20.h
+│  │        └─ nRF24L01_TX.ino
+│  ├─ fsm_velox
+│  │  ├─ fsm_velox.ino
+│  │  ├─ fsm_velox_noAdaF
+│  │  └─ velox.h
+│  └─ TEST_FILE
+│     ├─ RX_test
+│     │  └─ RX_test.ino
+│     ├─ SPI_test
+│     │  └─ SPI_test.ino
+│     ├─ Test_file_Motors_with_driver_L298N
+│     │  └─ Motori_L298N.ino
+│     ├─ TEST_I2C_MPU6050
+│     │  └─ TEST_I2C_MPU6050.ino
+│     ├─ tmp_fsm_velox_test
+│     │  ├─ tmp_fsm_velox_test.ino
+│     │  └─ velox.h
+│     └─ TX_test
+│        └─ TX_test.ino
+├─ LICENSE
+├─ README.md
 ├─.gitignore
-└─LICENSE
+└─ src
+   └─ web_server
+      ├─ data_sample
+      │  └─ speed-log.csv
+      ├─ package-lock.json
+      ├─ package.json
+      ├─ public
+      │  ├─ index.html
+      │  ├─ script.js
+      │  ├─ DashBoard.html
+      │  ├─ DashBoard.js
+      │  ├─ images
+      │  │  ├─ immagine_copertina.jpeg
+      │  │  ├─ RC_Car_Circutit_schematic.png
+      │  │  ├─ RC_control_system_schematic.png
+      │  │  └─ Schematica_motori_L293D.png
+      │  └─ report
+      │     ├─ Mpu_gestures_cartesian_visualization.pdf
+      │     └─ temp_IoT_SpeedCamera_Report.pdf
+      └─ server.js
 ~~~
 
 - `firmware/` - Contains code for microcontrollers:
 
     - `arduino_car/` -  Handles wireless communication using nRF24L01 modules (transmitter and receiver).
 
-    - `esp32/` -  Main ESP32 code, including required libraries.
-
     - `fsm_velox/` - Speed camera logic implemented as a finite state machine.
 
     - `TEST_FILE/` - Test files and experimental code.
 
-- `hardware/` - Includes schematics, wiring diagrams, and documentation for the physical components.
-
 - `src/` - Server-side and frontend application:
 
-    - `data_sample/` - sample data (speed logs).
+    - `data_sample/` - contains the measurement data.
 
-    - `public/` - web frontend (HTML, JS, dashboard interface).
+    - `public/` - web frontend (HTML, JS, dashboard interface and images).
 
     - `server.js` - Node.js backend for data handling.
 
@@ -188,7 +213,7 @@ OUT1, OUT2, OUT3, OUT4 → motor terminals
 - Compile and upload the sketch.
 
 ### 4. Firmware Arduino Nano (for the controller)
-- Open `firmware/arduino_car/Progetto_RX_TX/nRF24L01_RX/nRF24L01_TX.ino`.
+- Open `firmware/arduino_car/Progetto_RX_TX/nRF24L01_TX/nRF24L01_TX.ino`.
 - Connect the **Arduino Nano** to the PC.
 - Compile and upload the sketch.
 - Keep the MPU6050 on a flat surface during startup for proper calibration.
@@ -208,6 +233,6 @@ OUT1, OUT2, OUT3, OUT4 → motor terminals
 ## Team members and contributions
 - Luciani Stefano - Responsible for the hardware design, component wiring and the development of the control and communication software for RC car.
 Responsible for the  development of the finite state machine of the velox and its hardware design.
-- De Cao Andrea - 
+- De Cao Andrea -  Responsible for the overall project structure and architecture. Co-developed the control and communication software for the RC car, developed a Node.js backend exposing a REST API to receive and serve real-time sensor data, and a frontend Dashboard displaying live vehicle data. Handled the  frontend–backend integration and deployment on Render.
 - Boscardin Denise - Responsible for the speed camera code, 3d printing, readme and video editing.
 - Heenatigala Devmin - 
