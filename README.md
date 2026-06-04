@@ -7,12 +7,23 @@ A status LED turns green if the vehicle is within the limit and red if the limit
 The measured data is then sent to a web server in JSON format, where it is stored and displayed for later analysis.
 
 ## Table of contents
+* [Components presentation](#components-presentation)
 * [Hardware and software requirements](#hardware-and-software-requirements)
 * [Project layout](#project-layout)
 * [Pin mapping](#pin-mapping)
 * [User guide](#user-guide)
 * [Links](#links)
 * [Team members](#team-members-and-contributions)
+
+
+## Components presentation
+### The car
+![](src\web_server\public\images\car.jpeg)
+### The remote-controller
+![](src\web_server\public\images\controller.jpeg)
+### The speed camera
+![](src\web_server\public\images\velox.jpeg)
+
 
 ## Hardware and software requirements
 
@@ -21,31 +32,39 @@ The measured data is then sent to a web server in JSON format, where it is store
 For the car:
 - ARDUINO UNO R4 WIFI
 ![](src/web_server/public/images/arduino.jpg)
-- x2 nRF24L01+ PA LNA SMA Antenna 2,4 GHz
-- x2 NRF adapter
-- Power Bank 10400 mA 5V-2.1A
+- nRF24L01+ PA LNA SMA Antenna 2,4 GHz
+- NRF adapter
 - L298N Motor Driver
+- Power Bank 10400 mA 5V-2.1A
+- Jumper
 - x2 Battery pack 3V
 - x4 5V Motors 
 - x4 Tires
-- Chassis 
-- Power Bank 5000mA
+- Chassis
+- Adhesive tape
+
+For the remote-controller:
 - AZDelivery AZ-Nano V3-Board
 - AZDelivery AZ-Nano V3-Board case
+- nRF24L01+ PA LNA SMA Antenna 2,4 GHz
+- NRF adapter
 - MPU 6050 support 
-- Straps
-- Adhesive tape
+- Power Bank 5000mA
 - 5 volt benchtop generator
-- Stagnator
+- Soldering station
+- Straps
 - USB-C cables
 - Screws
-- Bolts \
+- Bolts
+- Adhesive tape \
 
 For the speed camera:
 - ESP32
 ![](src/web_server/public/images/esp32.webp)
-- Breadboard and jumper wires
 - x2 VCNL4010
+- Breadboard
+- Breadboard case
+- Jumper wires
 
 ### Software requirements
 The firmware is built with **Arduino IDE 2.x** (board packages for ESP32, Arduino Uno R4 WiFi and Arduino Nano).  
@@ -99,6 +118,22 @@ OUT1, OUT2, OUT3, OUT4 → motor terminals
 | GND         | GND                |
 | SCL         | A5 (I2C)           |
 | SDA         | A4 (I2C)           |
+
+### Proximity Sensors → ESP32 Dev Module
+
+| Proximity Sensor 1 Pin | VCNL4010 Pin |  
+|-------------|-------------------------|
+| VIN       | 3.3V                      |
+| GND     | GND                     |
+| SDA      | Digital 21            |
+| SCL      | Digital 22             |
+
+| Proximity Sensor 2 Pin | VCNL4010 Pin |
+|-------------|---------------------------|
+| VIN       | 3.3V                     |
+| GND     | GND                     |
+| SDA      | Digital 18            |
+| SCL       | Digital 19           |
 
 ## Project layout
 ~~~
