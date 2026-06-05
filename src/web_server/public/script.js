@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Imposta la larghezza totale del contenitore (importantissimo!)
   slider.style.width = `${total * 100}%`;
-  slider2.style.width = `${total * 100}%`;
+  slider2.style.width = `${total2 * 100}%`;
 
   // Ogni immagine deve occupare la stessa parte dello slider
   for (let s of slides) {
@@ -52,9 +52,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("prev").style.display="none";
     document.getElementById("next").style.display = "none";
   }
-  
+
   for (let k of slides2) {
-    k.style.width = `${100 / total}%`;
+    k.style.width = `${100 / total2}%`;
   }
   document.getElementById("slider-container-2").onmouseenter = () => {
     document.getElementById("prev-2").style.display="block";
