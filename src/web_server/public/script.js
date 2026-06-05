@@ -26,10 +26,19 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("prev").style.display = "none";
   document.getElementById("next").style.display = "none";
 
+  const slider2 = document.getElementById("slider-2");
+  const slides2 = slider2.children;
+  const total2 = slides2.length;
+  document.getElementById("prev-2").style.display = "none";
+  document.getElementById("next-2").style.display = "none";
+
   let index = 0;
+  let index2 = 0;
+
 
   // Imposta la larghezza totale del contenitore (importantissimo!)
   slider.style.width = `${total * 100}%`;
+  slider2.style.width = `${total * 100}%`;
 
   // Ogni immagine deve occupare la stessa parte dello slider
   for (let s of slides) {
@@ -42,6 +51,18 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("slider-container").onmouseleave = () => {
     document.getElementById("prev").style.display="none";
     document.getElementById("next").style.display = "none";
+  }
+  
+  for (let k of slides2) {
+    k.style.width = `${100 / total}%`;
+  }
+  document.getElementById("slider-container-2").onmouseenter = () => {
+    document.getElementById("prev-2").style.display="block";
+    document.getElementById("next-2").style.display = "block";
+  }
+  document.getElementById("slider-container-2").onmouseleave = () => {
+    document.getElementById("prev-2").style.display="none";
+    document.getElementById("next-2").style.display = "none";
   }
 
   function updateSlider() {
@@ -56,6 +77,20 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("prev").onclick = () => {
     index = (index - 1 + total) % total;
     updateSlider();
+  };
+
+  function updateSlider2() {
+    slider2.style.transform = `translateX(-${index2 * (100 / total)}%)`;
+  }
+
+  document.getElementById("next-2").onclick = () => {
+    index2 = (index2 + 1) % total;
+    updateSlider2();
+  };
+
+  document.getElementById("prev-2").onclick = () => {
+    index2 = (index2 - 1 + total) % total;
+    updateSlider2();
   };
 });
 
