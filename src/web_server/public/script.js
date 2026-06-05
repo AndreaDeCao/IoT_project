@@ -84,12 +84,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.getElementById("next-2").onclick = () => {
-    index2 = (index2 + 1) % total;
+    index2 = (index2 + 1) % total2;
     updateSlider2();
   };
 
   document.getElementById("prev-2").onclick = () => {
-    index2 = (index2 - 1 + total) % total;
+    index2 = (index2 - 1 + total2) % total2;
     updateSlider2();
   };
 });
