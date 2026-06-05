@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   function updateSlider2() {
-    slider2.style.transform = `translateX(-${index2 * (100 / total)}%)`;
+    slider2.style.transform = `translateX(-${index2 * (100 / total2)}%)`;
   }
 
   document.getElementById("next-2").onclick = () => {
