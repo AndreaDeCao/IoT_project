@@ -256,7 +256,7 @@ IoT_project
 - Link to the [YouTube Video](https://www.youtube.com/watch?v=iuvEgluySTU) 
 
 ## Team members and contributions
-- Luciani Stefano - Responsible for the hardware design, component wiring and the development of the control and communication software for RC car.
+- Luciani Stefano - Project leader and responsible for the hardware design, component wiring and the development of the control and communication software for RC car.
 Responsible for the  development of the finite state machine of the velox and its hardware design.
 - De Cao Andrea -  Responsible for the overall project structure and architecture. Co-developed the control and communication software for the RC car, developed a Node.js backend exposing a REST API to receive and serve real-time sensor data, and a frontend Dashboard displaying live vehicle data. Handled the  frontend–backend integration and deployment on Render.
 - Boscardin Denise - Responsible for the speed camera code, 3d printing, readme and video editing.
