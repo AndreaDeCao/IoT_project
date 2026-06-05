@@ -224,13 +224,123 @@
     </ol>
   </section>
 
+  <section class="max-w-5xl mx-auto mt-12 px-6">
+    <h2 class="text-2xl font-semibold mb-6">Technical Details</h2>
+
+    <!-- Hardware & Software -->
+    <div class="mb-8">
+      <h3 class="text-xl font-semibold mb-2">Hardware and Software Components</h3>
+      <ul class="list-disc ml-6 space-y-1">
+        <li>Arduino UNO R4 WiFi – car unit</li>
+        <li>nRF24L01+ PA LNA (2.4 GHz) – wireless communication between car and controller</li>
+        <li>L298N Motor Driver – motor power supply and polarity control</li>
+        <li>4x 5V Motors – one for each wheel</li>
+        <li>AZDelivery AZ-Nano V3 – controller unit</li>
+        <li>ESP32 – speed camera (velox)</li>
+        <li>2x VCNL4010 – proximity sensors for speed measurement</li>
+        <li>Render – hosting platform for the website</li>
+      </ul>
+    </div>
+
+    <!-- Data Structures -->
+    <div class="mb-8">
+      <h3 class="text-xl font-semibold mb-2">Data Structures</h3>
+      <ul class="list-disc ml-6 space-y-1">
+        <li>MPU6050 data structure (x, y, z spatial position)</li>
+        <li>Torque vectoring algorithm</li>
+        <li>Finite State Machine (FSM) for the speed camera</li>
+      </ul>
+    </div>
+
+    <!-- Algorithms -->
+    <div class="mb-8">
+      <h3 class="text-xl font-semibold mb-2">Algorithms</h3>
+      <ul class="list-disc ml-6 space-y-1">
+        <li>Torque vectoring for differential speed control</li>
+        <li>3D position mapping using MPU6050 (x, y, z axes)</li>
+      </ul>
+    </div>
+
+    <!-- Code Examples -->
+    <div class="mb-8">
+      <h3 class="text-xl font-semibold mb-2">Core Logic (Examples)</h3>
+
+      <p class="font-semibold mt-4">Speed calculation (Velox):</p>
+      <pre class="bg-gray-200 p-3 rounded-lg text-sm overflow-x-auto">
+        currentSpeed = (distance12_cm / time_seconds) / 100.0;
+        overSpeed = (currentSpeed > speedThreshold);
+      </pre>
+
+      <p class="font-semibold mt-4">Sending data to Web Server:</p>
+      <pre class="bg-gray-200 p-3 rounded-lg text-sm overflow-x-auto">
+        http.addHeader("Content-Type", "application/json");
+
+        String payload = "{\"speed\":" + String(currentSpeed, 2) +
+                        ",\"sensorTriggered\":" + String(overSpeed ? "true" : "false") + "}";
+
+        char jsonBuffer[128];
+        snprintf(jsonBuffer, sizeof(jsonBuffer), "%s", payload.c_str());
+
+        int httpResponseCode = http.POST(jsonBuffer);
+      </pre>
+
+      <p class="font-semibold mt-4">Car movement logic:</p>
+      <pre class="bg-gray-200 p-3 rounded-lg text-sm overflow-x-auto">
+          int moveX = map(x, 0, 254, -255, 255);
+          int moveY = map(y, 0, 254, -255, 255);
+
+          int sx = constrain(abs(moveY + moveX), 0, 255);
+          int dx = constrain(abs(moveY - moveX), 0, 255);
+      </pre>
+    </div>
+
+    <!-- Testing -->
+    <div class="mb-8">
+      <h3 class="text-xl font-semibold mb-2">Software Testing</h3>
+      <ul class="list-disc ml-6 space-y-1">
+        <li>VCNL4010 sensor testing</li>
+        <li>Communication protocol testing</li>
+        <li>Motor testing</li>
+        <li>Real-time system testing</li>
+      </ul>
+      <p class="mt-2">All components were validated through dedicated test files.</p>
+    </div>
+
+    <!-- Problems -->
+    <div class="mb-8">
+      <h3 class="text-xl font-semibold mb-2">Challenges</h3>
+      <ul class="list-disc ml-6 space-y-1">
+        <li>Velox: I2C bus conflicts</li>
+        <li>Car control: Electromagnetic interference (EMI)</li>
+        <li>Web server: data persistence issues</li>
+      </ul>
+    </div>
+
+    <!-- Future -->
+    <div class="mb-8">
+      <h3 class="text-xl font-semibold mb-2">Future Improvements</h3>
+      <ul class="list-disc ml-6 space-y-1">
+        <li>Email notification system for fines</li>
+      </ul>
+    </div>
+
+    <!-- Conclusion -->
+    <div>
+      <h3 class="text-xl font-semibold mb-2">Conclusions</h3>
+      <p>
+        This project allowed us to gain practical experience in wireless communication,
+        power electronics, communication protocols, system simulation, and hardware debugging.
+      </p>
+    </div>
+  </section>
+
   <!-- Links -->
   <section class="max-w-5xl mx-auto mt-12 px-6 text-center">
     <h2 class="text-2xl font-semibold mb-4">Resources & Links</h2>
     <div class="flex flex-wrap justify-center gap-6">
-      <a href="/firmware/fsm_velox/fsm_velox.ino"" download="fsm_velox.ino" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700">ESP32 Firmware</a>
+      <a href="/firmware/fsm_velox/fsm_velox.ino" download="fsm_velox.ino" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700">ESP32 Firmware</a>
       <a href="/firmware/arduino_car/Progetto_RX_TX/nRF24L01_RX/nRF24L01_RX.ino" download="nRF24L01_RX.ino" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700">Arduino Receiver Firmware</a>
-      <a href="/firmware//arduino_car/Progetto_RX_TX/nRF24L01_TX/nRF24L01_TX.ino" download="nRF24L01_TX.ino" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700">Arduino Transmitter Firmware</a>
+      <a href="/firmware/arduino_car/Progetto_RX_TX/nRF24L01_TX/nRF24L01_TX.ino" download="nRF24L01_TX.ino" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700">Arduino Transmitter Firmware</a>
       <a href="./report/IoT_Project_Report_Group14.pdf" download="IoT_Project_Report_Group14.pdf" class="bg-gray-700 text-white px-5 py-2 rounded-lg hover:bg-gray-800" id="temp">Project Report</a>
       <a href="./report/Mpu_gestures_cartesian_visualization.pdf" download="Mpu_gestures_cartesian_visualization.pdf" class="bg-gray-700 text-white px-5 py-2 rounded-lg hover:bg-gray-800" id="temp">MPU gestures schema</a>
       <a href="DashBoard.html" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700" id="new_page">WEB SERVER</a>
