@@ -168,6 +168,8 @@ app.get('/data', (req, res) => {
   });
 });
 
+app.use('/firmware', express.static(path.join(__dirname, '../../firmware')));
+
 app.listen(PORT, () => {
   console.log(`Server attivo su http://localhost:${PORT}`);
 });
